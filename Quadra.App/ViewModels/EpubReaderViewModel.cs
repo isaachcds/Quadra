@@ -119,6 +119,8 @@ public partial class EpubReaderViewModel
         var html = await File.ReadAllTextAsync(
             capitulo.LocalFilePath);
 
+        html = AplicarEstiloLeitura(html);
+
         var directory =
             Path.GetDirectoryName(capitulo.LocalFilePath);
 
@@ -180,6 +182,140 @@ public partial class EpubReaderViewModel
         CapituloAtual--;
 
         await CarregarCapituloAtualAsync();
+    }
+
+    private static string AplicarEstiloLeitura(string html)
+    {
+        const string readerStyle = """
+        <style id="quadra-reader-style">
+            :root {
+                color-scheme: light;
+            }
+
+            html {
+                background-color: #FAF8F3 !important;
+            }
+
+            body {
+                box-sizing: border-box;
+                max-width: 760px;
+                margin: 0 auto !important;
+                padding: 24px 20px 48px 20px !important;
+
+                background-color: #FAF8F3 !important;
+                color: #242424 !important;
+
+                font-family:
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    "Segoe UI",
+                    Roboto,
+                    Arial,
+                    sans-serif !important;
+
+                font-size: 18px !important;
+                line-height: 1.7 !important;
+
+                overflow-wrap: break-word;
+                word-wrap: break-word;
+            }
+
+            p {
+                margin-top: 0;
+                margin-bottom: 1em;
+            }
+
+            h1,
+            h2,
+            h3,
+            h4,
+            h5,
+            h6 {
+                color: #202020 !important;
+                line-height: 1.3 !important;
+                margin-top: 1.4em;
+                margin-bottom: 0.7em;
+            }
+
+            img,
+            svg,
+            video {
+                display: block;
+                max-width: 100% !important;
+                height: auto !important;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            table {
+                display: block;
+                max-width: 100%;
+                overflow-x: auto;
+                border-collapse: collapse;
+            }
+
+            pre,
+            code {
+                white-space: pre-wrap;
+                overflow-wrap: break-word;
+            }
+
+            a {
+                color: #5B3FE5 !important;
+            }
+
+            blockquote {
+                margin-left: 0;
+                padding-left: 16px;
+                border-left: 3px solid #C8BDF8;
+            }
+        </style>
+        """;
+
+        if (html.Contains(
+            "quadra-reader-style",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            return html;
+        }
+
+        var headClosingIndex = html.IndexOf(
+            "</head>",
+            StringComparison.OrdinalIgnoreCase);
+
+        if (headClosingIndex >= 0)
+        {
+            return html.Insert(
+                headClosingIndex,
+                readerStyle);
+        }
+
+        var bodyOpeningIndex = html.IndexOf(
+            "<body",
+            StringComparison.OrdinalIgnoreCase);
+
+        if (bodyOpeningIndex >= 0)
+        {
+            return html.Insert(
+                bodyOpeningIndex,
+                $"<head>{readerStyle}</head>");
+        }
+
+        return $"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta
+                name="viewport"
+                content="width=device-width, initial-scale=1.0" />
+
+            {readerStyle}
+        </head>
+        <body>
+            {html}
+        </body>
+        </html>
+        """;
     }
 
     [RelayCommand]
