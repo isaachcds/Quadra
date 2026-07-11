@@ -69,10 +69,15 @@
 		<PackageReference Include="SourceGear.sqlite3" Version="3.53.3" />
 
 		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+
+		<PackageReference Include="VersOne.Epub" Version="3.3.6" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <MauiXaml Update="Pages\BookDetailsPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\EpubReaderPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	  <MauiXaml Update="Pages\LibraryPage.xaml">

@@ -54,6 +54,10 @@ builder.Services.AddSingleton<
         builder.Services.AddSingleton<CoverService>();
         builder.Services.AddSingleton<ComicReaderService>();
 
+        builder.Services.AddSingleton<
+            IEpubReaderService,
+            EpubReaderService>();
+
         builder.Services.AddTransient<LibraryViewModel>();
         builder.Services.AddTransient<LibraryPage>();
 
@@ -63,6 +67,8 @@ builder.Services.AddSingleton<
         builder.Services.AddTransient<ReaderViewModel>();
         builder.Services.AddTransient<ReaderPage>();
 
+        builder.Services.AddTransient<EpubReaderPage>();
+        builder.Services.AddTransient<EpubReaderViewModel>();
         return builder.Build();
     }
 }

@@ -16,6 +16,10 @@ public partial class AppShell : Shell
             nameof(ReaderPage),
             typeof(ReaderPage));
 
+        Routing.RegisterRoute(
+            nameof(EpubReaderPage),
+            typeof(EpubReaderPage));
+
         Items.Add(new ShellContent
         {
             Title = "Biblioteca",

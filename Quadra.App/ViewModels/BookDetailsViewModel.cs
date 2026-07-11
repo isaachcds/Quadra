@@ -73,6 +73,20 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
             Item.CurrentPage = 0;
         }
 
+        if (Item.Format.Equals(
+        "EPUB",
+        StringComparison.OrdinalIgnoreCase))
+        {
+            await Shell.Current.GoToAsync(
+                nameof(EpubReaderPage),
+                new Dictionary<string, object>
+                {
+                    ["Item"] = Item
+                });
+
+            return;
+        }
+
         try
         {
             EstaPreparandoLeitura = true;
