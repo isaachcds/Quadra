@@ -15,10 +15,15 @@ public class CoverService
         ".bmp"
     ];
 
+    private readonly IPdfCoverService? _pdfCoverService;
+
     private readonly string _coversDirectory;
 
-    public CoverService()
+    public CoverService(
+     IPdfCoverService? pdfCoverService = null)
     {
+        _pdfCoverService = pdfCoverService;
+
         _coversDirectory = Path.Combine(
             FileSystem.Current.AppDataDirectory,
             "Covers");
@@ -45,8 +50,29 @@ public class CoverService
                 item,
                 cancellationToken),
 
+            "PDF" => await GeneratePdfCoverAsync(
+                item,
+                cancellationToken),
+
             _ => null
         };
+    }
+
+    private async Task<string?> GeneratePdfCoverAsync(
+    LibraryItem item,
+    CancellationToken cancellationToken)
+    {
+        if (_pdfCoverService is null)
+            return null;
+
+        var coverPath = CreateCoverPath(
+            item,
+            ".png");
+
+        return await _pdfCoverService.GenerateCoverAsync(
+            item,
+            coverPath,
+            cancellationToken);
     }
 
     private async Task<string?> GenerateCbzCoverAsync(

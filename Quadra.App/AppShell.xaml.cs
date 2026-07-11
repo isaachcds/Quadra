@@ -12,6 +12,10 @@ public partial class AppShell : Shell
             nameof(BookDetailsPage),
             typeof(BookDetailsPage));
 
+        Routing.RegisterRoute(
+            nameof(ReaderPage),
+            typeof(ReaderPage));
+
         Items.Add(new ShellContent
         {
             Title = "Biblioteca",

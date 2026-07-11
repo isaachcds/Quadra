@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="Quadra.App.Pages.ReaderPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="Black"
+    Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,*,Auto">
+
+        <!-- Cabeçalho -->
+        <Grid
+            Grid.Row="0"
+            Padding="12"
+            ColumnDefinitions="Auto,*,Auto"
+            BackgroundColor="#CC111111"
+            ZIndex="2">
+
+            <Button
+                Grid.Column="0"
+                Text="‹"
+                WidthRequest="42"
+                HeightRequest="42"
+                Padding="0"
+                CornerRadius="21"
+                FontSize="30"
+                BackgroundColor="#332FFF"
+                TextColor="White"
+                Command="{Binding VoltarCommand}" />
+
+            <Label
+                Grid.Column="1"
+                Text="{Binding Item.Title}"
+                Margin="12,0"
+                VerticalOptions="Center"
+                HorizontalTextAlignment="Center"
+                MaxLines="1"
+                LineBreakMode="TailTruncation"
+                FontSize="14"
+                FontAttributes="Bold"
+                TextColor="White" />
+
+            <Label
+                Grid.Column="2"
+                Text="{Binding TextoPagina}"
+                VerticalOptions="Center"
+                FontSize="13"
+                TextColor="White" />
+
+        </Grid>
+
+        <!-- Leitor -->
+        <CarouselView
+            Grid.Row="1"
+            ItemsSource="{Binding Paginas}"
+            Position="{Binding PaginaAtual, Mode=TwoWay}"
+            IsSwipeEnabled="True"
+            Loop="False"
+            BackgroundColor="Black">
+
+            <CarouselView.ItemTemplate>
+                <DataTemplate>
+
+                    <Grid BackgroundColor="Black">
+
+                        <Image
+                            Source="{Binding FilePath}"
+                            Aspect="AspectFit"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill" />
+
+                    </Grid>
+
+                </DataTemplate>
+            </CarouselView.ItemTemplate>
+
+        </CarouselView>
+
+        <!-- Rodapé -->
+        <Grid
+            Grid.Row="2"
+            Padding="16,10"
+            BackgroundColor="#CC111111"
+            ZIndex="2">
+
+            <Label
+                Text="{Binding TextoPagina}"
+                HorizontalOptions="Center"
+                FontSize="13"
+                TextColor="White" />
+
+        </Grid>
+
+        <!-- Carregamento -->
+        <Grid
+            Grid.RowSpan="3"
+            IsVisible="{Binding EstaCarregando}"
+            BackgroundColor="Black"
+            ZIndex="10">
+
+            <VerticalStackLayout
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Spacing="14">
+
+                <ActivityIndicator
+                    IsRunning="{Binding EstaCarregando}"
+                    WidthRequest="42"
+                    HeightRequest="42"
+                    Color="#6C4DF6" />
+
+                <Label
+                    Text="Preparando leitura..."
+                    FontSize="14"
+                    TextColor="White" />
+
+            </VerticalStackLayout>
+
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

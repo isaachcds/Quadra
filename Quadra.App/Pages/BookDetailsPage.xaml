@@ -229,6 +229,26 @@
                 </Grid>
 
                 <!-- Ações -->
+
+                <VerticalStackLayout
+                    IsVisible="{Binding EstaPreparandoLeitura}"
+                    Spacing="8"
+                    HorizontalOptions="Center">
+
+                    <ActivityIndicator
+                        IsRunning="{Binding EstaPreparandoLeitura}"
+                        Color="#6C4DF6"
+                        WidthRequest="34"
+                        HeightRequest="34" />
+
+                    <Label
+                        Text="{Binding TextoPreparacao}"
+                        FontSize="13"
+                        HorizontalTextAlignment="Center"
+                        TextColor="{AppThemeBinding Light=#666666, Dark=#AFAFAF}" />
+
+                </VerticalStackLayout>
+
                 <Button
                     Text="Começar leitura"
                     HeightRequest="52"

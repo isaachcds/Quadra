@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Quadra.App.Data;
+using Quadra.App.Pages;
 using Quadra.App.Models;
 using Quadra.App.Services;
 
@@ -10,6 +11,7 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
 {
     private readonly QuadraDatabase _database;
     private readonly LibraryStorageService _storageService;
+    private readonly ComicReaderService _comicReaderService;
 
     [ObservableProperty]
     private LibraryItem? item;
@@ -23,12 +25,20 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
     [ObservableProperty]
     private bool possuiPaginas;
 
+    [ObservableProperty]
+    private bool estaPreparandoLeitura;
+
+    [ObservableProperty]
+    private string textoPreparacao = string.Empty;
+
     public BookDetailsViewModel(
-        QuadraDatabase database,
-        LibraryStorageService storageService)
+    QuadraDatabase database,
+    LibraryStorageService storageService,
+    ComicReaderService comicReaderService)
     {
         _database = database;
         _storageService = storageService;
+        _comicReaderService = comicReaderService;
     }
 
     public void ApplyQueryAttributes(
@@ -48,13 +58,60 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
     [RelayCommand]
     private async Task IniciarLeituraAsync()
     {
-        if (Item is null)
+        if (Item is null || EstaPreparandoLeitura)
             return;
 
-        await Shell.Current.DisplayAlertAsync(
-            "Leitor",
-            $"Na próxima etapa abriremos as páginas de \"{Item.Title}\".",
-            "OK");
+        try
+        {
+            EstaPreparandoLeitura = true;
+            TextoPreparacao = "Preparando páginas...";
+
+            var paginas =
+                await _comicReaderService.LoadPagesAsync(Item);
+
+            if (paginas.Count == 0)
+            {
+                await Shell.Current.DisplayAlertAsync(
+                    "Nenhuma página encontrada",
+                    "O arquivo não possui imagens compatíveis.",
+                    "OK");
+
+                return;
+            }
+
+            Item.TotalPages = paginas.Count;
+
+            if (Item.CurrentPage < 0 ||
+                Item.CurrentPage >= Item.TotalPages)
+            {
+                Item.CurrentPage = 0;
+            }
+
+            await _database.SaveLibraryItemAsync(Item);
+
+            AtualizarProgresso();
+
+            var parametros = new Dictionary<string, object>
+            {
+                ["Item"] = Item
+            };
+
+            await Shell.Current.GoToAsync(
+                nameof(ReaderPage),
+                parametros);
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Erro ao preparar leitura",
+                ex.Message,
+                "OK");
+        }
+        finally
+        {
+            EstaPreparandoLeitura = false;
+            TextoPreparacao = string.Empty;
+        }
     }
 
     [RelayCommand]
@@ -107,6 +164,6 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
                 1);
 
         TextoProgresso =
-            $"Página {Item.CurrentPage} de {Item.TotalPages}";
+            $"Página {Item.CurrentPage + 1} de {Item.TotalPages}";
     }
 }
