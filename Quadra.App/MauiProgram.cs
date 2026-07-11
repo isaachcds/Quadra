@@ -58,6 +58,8 @@ builder.Services.AddSingleton<
             IEpubReaderService,
             EpubReaderService>();
 
+        builder.Services.AddSingleton<LibraryCleanupService>();
+
         builder.Services.AddTransient<LibraryViewModel>();
         builder.Services.AddTransient<LibraryPage>();
 

@@ -13,17 +13,20 @@ public partial class LibraryViewModel : ObservableObject
     private readonly LibraryStorageService _storageService;
     private readonly QuadraDatabase _database;
     private readonly CoverService _coverService;
+    private readonly LibraryCleanupService _cleanupService;
 
     public ObservableCollection<LibraryItem> Itens { get; } = [];
 
     public LibraryViewModel(
-       LibraryStorageService storageService,
-       QuadraDatabase database,
-       CoverService coverService)
+    LibraryStorageService storageService,
+    QuadraDatabase database,
+    CoverService coverService,
+    LibraryCleanupService cleanupService)
     {
         _storageService = storageService;
         _database = database;
         _coverService = coverService;
+        _cleanupService = cleanupService;
     }
 
     [ObservableProperty]
@@ -78,7 +81,7 @@ public partial class LibraryViewModel : ObservableObject
 
             var opcoes = new PickOptions
             {
-                PickerTitle = "Selecione um CBR, CBZ ou PDF",
+                PickerTitle = "Selecione um CBR, CBZ, PDF ou EPUB",
                 FileTypes = tiposPermitidos
             };
 
@@ -103,7 +106,7 @@ public partial class LibraryViewModel : ObservableObject
             {
                 await Shell.Current.DisplayAlertAsync(
                     "Arquivo não suportado",
-                    "Escolha um arquivo CBR, CBZ ou PDF.",
+                    "Escolha um arquivo CBR, CBZ, PDF ou EPUB.",
                     "Entendi");
 
                 return;
@@ -162,8 +165,8 @@ public partial class LibraryViewModel : ObservableObject
 
         try
         {
+            await _cleanupService.DeleteFilesAsync(item);
             await _database.DeleteLibraryItemAsync(item);
-            await _storageService.DeleteAsync(item);
 
             Itens.Remove(item);
 
@@ -171,7 +174,7 @@ public partial class LibraryViewModel : ObservableObject
 
             await Shell.Current.DisplayAlertAsync(
                 "Obra removida",
-                "A cópia interna foi removida. O arquivo original não foi apagado.",
+                "A cópia interna, a capa e os arquivos temporários foram removidos. O arquivo original não foi apagado.",
                 "OK");
         }
         catch (Exception ex)
