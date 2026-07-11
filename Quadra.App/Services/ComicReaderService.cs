@@ -15,14 +15,19 @@ public class ComicReaderService
     ];
 
     private readonly string _comicCacheDirectory;
+    private readonly IPdfReaderService _pdfReaderService;
 
-    public ComicReaderService()
+    public ComicReaderService(
+        IPdfReaderService pdfReaderService)
     {
+        _pdfReaderService = pdfReaderService;
+
         _comicCacheDirectory = Path.Combine(
             FileSystem.Current.CacheDirectory,
             "Comics");
 
-        Directory.CreateDirectory(_comicCacheDirectory);
+        Directory.CreateDirectory(
+            _comicCacheDirectory);
     }
 
     public async Task<List<ComicPage>> LoadPagesAsync(
@@ -45,6 +50,10 @@ public class ComicReaderService
                 cancellationToken),
 
             "CBZ" => await LoadCbzPagesAsync(
+                item,
+                cancellationToken),
+
+            "PDF" => await _pdfReaderService.LoadPagesAsync(
                 item,
                 cancellationToken),
 
@@ -121,8 +130,8 @@ public class ComicReaderService
     }
 
     private async Task<List<ComicPage>> LoadCbzPagesAsync(
-        LibraryItem item,
-        CancellationToken cancellationToken)
+     LibraryItem item,
+     CancellationToken cancellationToken)
     {
         var itemCacheDirectory = PrepareItemCache(item);
 
@@ -159,15 +168,17 @@ public class ComicReaderService
 
             if (!File.Exists(destinationPath))
             {
-                await using var inputStream = entry.Open();
+                await using var inputStream =
+                    entry.Open();
 
-                await using var outputStream = new FileStream(
-                    destinationPath,
-                    FileMode.Create,
-                    FileAccess.Write,
-                    FileShare.None,
-                    bufferSize: 81920,
-                    useAsync: true);
+                await using var outputStream =
+                    new FileStream(
+                        destinationPath,
+                        FileMode.Create,
+                        FileAccess.Write,
+                        FileShare.None,
+                        bufferSize: 81920,
+                        useAsync: true);
 
                 await inputStream.CopyToAsync(
                     outputStream,
@@ -189,10 +200,23 @@ public class ComicReaderService
     {
         ArgumentNullException.ThrowIfNull(item);
 
-        var directory = GetItemCacheDirectory(item);
+        if (item.Format.Equals(
+            "PDF",
+            StringComparison.OrdinalIgnoreCase))
+        {
+            _pdfReaderService.ClearCache(item);
+            return;
+        }
+
+        var directory =
+            GetItemCacheDirectory(item);
 
         if (Directory.Exists(directory))
-            Directory.Delete(directory, recursive: true);
+        {
+            Directory.Delete(
+                directory,
+                recursive: true);
+        }
     }
 
     private string PrepareItemCache(LibraryItem item)

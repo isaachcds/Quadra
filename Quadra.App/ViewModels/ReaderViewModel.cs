@@ -24,6 +24,9 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
     private bool estaCarregando;
 
     [ObservableProperty]
+    private bool controlesVisiveis = true;
+
+    [ObservableProperty]
     private string textoPagina = string.Empty;
 
     public ReaderViewModel(
@@ -111,6 +114,33 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
         TextoPagina = Paginas.Count == 0
             ? string.Empty
             : $"{PaginaAtual + 1} / {Paginas.Count}";
+    }
+
+
+    [RelayCommand]
+    private void AlternarControles()
+    {
+        ControlesVisiveis = !ControlesVisiveis;
+    }
+
+    [RelayCommand]
+    private void AvancarPagina()
+    {
+        if (Paginas.Count == 0)
+            return;
+
+        if (PaginaAtual < Paginas.Count - 1)
+            PaginaAtual++;
+    }
+
+    [RelayCommand]
+    private void VoltarPagina()
+    {
+        if (Paginas.Count == 0)
+            return;
+
+        if (PaginaAtual > 0)
+            PaginaAtual--;
     }
 
     [RelayCommand]

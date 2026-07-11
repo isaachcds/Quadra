@@ -41,6 +41,14 @@ public static class MauiProgram
         builder.Services.AddSingleton<
             IPdfCoverService,
             PdfCoverService>();
+
+        builder.Services.AddSingleton<
+            IPdfReaderService,
+            PdfReaderService>();
+#else
+builder.Services.AddSingleton<
+    IPdfReaderService,
+    UnsupportedPdfReaderService>();
 #endif
 
         builder.Services.AddSingleton<CoverService>();

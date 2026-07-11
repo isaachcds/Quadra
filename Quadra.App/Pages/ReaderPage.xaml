@@ -7,14 +7,49 @@
     BackgroundColor="Black"
     Shell.NavBarIsVisible="False">
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid>
+
+        <!-- Leitor -->
+        <CarouselView
+            x:Name="ReaderCarousel"
+            ItemsSource="{Binding Paginas}"
+            Position="{Binding PaginaAtual, Mode=TwoWay}"
+            IsSwipeEnabled="True"
+            Loop="False"
+            BackgroundColor="Black">
+
+            <CarouselView.ItemTemplate>
+                <DataTemplate>
+
+                    <Grid BackgroundColor="Black">
+
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer
+                                NumberOfTapsRequired="1"
+                                Tapped="OnReaderTapped" />
+                        </Grid.GestureRecognizers>
+
+                        <Image
+                            Source="{Binding FilePath}"
+                            Aspect="AspectFit"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill" />
+
+                    </Grid>
+
+                </DataTemplate>
+            </CarouselView.ItemTemplate>
+
+
+        </CarouselView>
 
         <!-- Cabeçalho -->
         <Grid
-            Grid.Row="0"
+            IsVisible="{Binding ControlesVisiveis}"
             Padding="12"
             ColumnDefinitions="Auto,*,Auto"
             BackgroundColor="#CC111111"
+            VerticalOptions="Start"
             ZIndex="2">
 
             <Button
@@ -25,7 +60,7 @@
                 Padding="0"
                 CornerRadius="21"
                 FontSize="30"
-                BackgroundColor="#332FFF"
+                BackgroundColor="#33FFFFFF"
                 TextColor="White"
                 Command="{Binding VoltarCommand}" />
 
@@ -50,38 +85,12 @@
 
         </Grid>
 
-        <!-- Leitor -->
-        <CarouselView
-            Grid.Row="1"
-            ItemsSource="{Binding Paginas}"
-            Position="{Binding PaginaAtual, Mode=TwoWay}"
-            IsSwipeEnabled="True"
-            Loop="False"
-            BackgroundColor="Black">
-
-            <CarouselView.ItemTemplate>
-                <DataTemplate>
-
-                    <Grid BackgroundColor="Black">
-
-                        <Image
-                            Source="{Binding FilePath}"
-                            Aspect="AspectFit"
-                            HorizontalOptions="Fill"
-                            VerticalOptions="Fill" />
-
-                    </Grid>
-
-                </DataTemplate>
-            </CarouselView.ItemTemplate>
-
-        </CarouselView>
-
         <!-- Rodapé -->
         <Grid
-            Grid.Row="2"
+            IsVisible="{Binding ControlesVisiveis}"
             Padding="16,10"
             BackgroundColor="#CC111111"
+            VerticalOptions="End"
             ZIndex="2">
 
             <Label
@@ -94,7 +103,6 @@
 
         <!-- Carregamento -->
         <Grid
-            Grid.RowSpan="3"
             IsVisible="{Binding EstaCarregando}"
             BackgroundColor="Black"
             ZIndex="10">

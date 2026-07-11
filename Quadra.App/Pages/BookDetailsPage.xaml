@@ -250,7 +250,7 @@
                 </VerticalStackLayout>
 
                 <Button
-                    Text="Começar leitura"
+                    Text="{Binding TextoBotaoLeitura}"
                     HeightRequest="52"
                     CornerRadius="16"
                     BackgroundColor="#6C4DF6"

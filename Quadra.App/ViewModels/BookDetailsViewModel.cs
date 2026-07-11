@@ -31,6 +31,9 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
     [ObservableProperty]
     private string textoPreparacao = string.Empty;
 
+    [ObservableProperty]
+    private string textoBotaoLeitura = "Começar leitura";
+
     public BookDetailsViewModel(
     QuadraDatabase database,
     LibraryStorageService storageService,
@@ -60,6 +63,15 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
     {
         if (Item is null || EstaPreparandoLeitura)
             return;
+
+        var leituraConcluida =
+            Item.TotalPages > 0 &&
+            Item.CurrentPage >= Item.TotalPages - 1;
+
+        if (leituraConcluida)
+        {
+            Item.CurrentPage = 0;
+        }
 
         try
         {
@@ -152,18 +164,65 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
             PossuiPaginas = false;
             PercentualProgresso = 0;
             TextoProgresso = "Ainda não iniciado";
+            TextoBotaoLeitura = "Começar leitura";
             return;
         }
 
         PossuiPaginas = true;
 
-        PercentualProgresso =
-            Math.Clamp(
-                (double)Item.CurrentPage / Item.TotalPages,
-                0,
-                1);
+        var paginaExibida = Math.Clamp(
+            Item.CurrentPage + 1,
+            1,
+            Item.TotalPages);
+
+        var leituraConcluida =
+            Item.CurrentPage >= Item.TotalPages - 1;
+
+        PercentualProgresso = Math.Clamp(
+            (double)paginaExibida / Item.TotalPages,
+            0,
+            1);
+
+        if (leituraConcluida)
+        {
+            TextoProgresso = "Leitura concluída";
+            TextoBotaoLeitura = "Ler novamente";
+            return;
+        }
 
         TextoProgresso =
-            $"Página {Item.CurrentPage + 1} de {Item.TotalPages}";
+            $"Página {paginaExibida} de {Item.TotalPages}";
+
+        TextoBotaoLeitura =
+            Item.CurrentPage > 0
+                ? "Continuar leitura"
+                : "Começar leitura";
+    }
+
+    [RelayCommand]
+    private async Task AtualizarDetalhesAsync()
+    {
+        if (Item is null || Item.Id <= 0)
+            return;
+
+        try
+        {
+            var itemAtualizado =
+                await _database.GetLibraryItemAsync(Item.Id);
+
+            if (itemAtualizado is null)
+                return;
+
+            Item = itemAtualizado;
+
+            AtualizarProgresso();
+        }
+        catch (Exception ex)
+        {
+            await Shell.Current.DisplayAlertAsync(
+                "Erro ao atualizar detalhes",
+                ex.Message,
+                "OK");
+        }
     }
 }
