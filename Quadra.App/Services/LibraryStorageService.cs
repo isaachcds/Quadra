@@ -30,7 +30,8 @@ public class LibraryStorageService
         [
             ".cbr",
             ".cbz",
-            ".pdf"
+            ".pdf",
+            ".epub"
         ];
 
         if (!allowedExtensions.Contains(extension))

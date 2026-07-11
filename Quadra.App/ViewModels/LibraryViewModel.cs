@@ -64,15 +64,16 @@ public partial class LibraryViewModel : ObservableObject
                             "*/*"
                         }
                     },
+                   {
+                    DevicePlatform.WinUI,
+                    new[]
                     {
-                        DevicePlatform.WinUI,
-                        new[]
-                        {
-                            ".pdf",
-                            ".cbz",
-                            ".cbr"
-                        }
+                        ".pdf",
+                        ".cbz",
+                        ".cbr",
+                        ".epub"
                     }
+                }
                 });
 
             var opcoes = new PickOptions
@@ -94,7 +95,8 @@ public partial class LibraryViewModel : ObservableObject
             [
                 ".cbr",
                 ".cbz",
-                ".pdf"
+                ".pdf",
+                ".epub"
             ];
 
             if (!extensoesPermitidas.Contains(extensao))
