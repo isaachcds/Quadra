@@ -1,5 +1,7 @@
 ﻿using Quadra.App.Models;
 using System.IO.Compression;
+using System.Net;
+using System.Text.RegularExpressions;
 using VersOne.Epub;
 
 namespace Quadra.App.Services;
@@ -67,10 +69,17 @@ public class EpubReaderService : IEpubReaderService
             if (!File.Exists(localFilePath))
                 continue;
 
+            var chapterNumber = chapters.Count + 1;
+
+            var chapterTitle = await ExtractChapterTitleAsync(
+                localFilePath,
+                chapterNumber,
+                cancellationToken);
+
             chapters.Add(new EpubChapter
             {
                 Index = chapters.Count,
-                Title = $"Capítulo {chapters.Count + 1}",
+                Title = chapterTitle,
                 OriginalPath = contentFile.FilePath,
                 LocalFilePath = localFilePath
             });
@@ -151,6 +160,111 @@ public class EpubReaderService : IEpubReaderService
         return Path.Combine(
             _epubCacheDirectory,
             identifier);
+    }
+
+    private static async Task<string> ExtractChapterTitleAsync(
+    string localFilePath,
+    int chapterNumber,
+    CancellationToken cancellationToken)
+    {
+        try
+        {
+            var html = await File.ReadAllTextAsync(
+                localFilePath,
+                cancellationToken);
+
+            var headingTitle =
+                ExtractFirstHtmlElementContent(
+                    html,
+                    "h1",
+                    "h2",
+                    "h3");
+
+            if (!string.IsNullOrWhiteSpace(headingTitle))
+                return headingTitle;
+
+            var documentTitle =
+                ExtractFirstHtmlElementContent(
+                    html,
+                    "title");
+
+            if (!string.IsNullOrWhiteSpace(documentTitle) &&
+                !IsGenericChapterTitle(documentTitle))
+            {
+                return documentTitle;
+            }
+        }
+        catch
+        {
+            // Um título inválido não deve impedir a leitura.
+        }
+
+        return $"Capítulo {chapterNumber}";
+    }
+
+    private static string? ExtractFirstHtmlElementContent(
+    string html,
+    params string[] elementNames)
+    {
+        foreach (var elementName in elementNames)
+        {
+            var pattern =
+                $@"<{elementName}\b[^>]*>(.*?)</{elementName}>";
+
+            var match = Regex.Match(
+                html,
+                pattern,
+                RegexOptions.IgnoreCase |
+                RegexOptions.Singleline);
+
+            if (!match.Success)
+                continue;
+
+            var content = match.Groups[1].Value;
+
+            content = Regex.Replace(
+                content,
+                "<[^>]+>",
+                " ");
+
+            content = WebUtility.HtmlDecode(content);
+
+            content = Regex.Replace(
+                content,
+                @"\s+",
+                " ");
+
+            content = content.Trim();
+
+            if (!string.IsNullOrWhiteSpace(content))
+                return content;
+        }
+
+        return null;
+    }
+
+    private static bool IsGenericChapterTitle(
+    string title)
+    {
+        var normalizedTitle = title
+            .Trim()
+            .ToLowerInvariant();
+
+        string[] genericTitles =
+        [
+            "untitled",
+        "sem título",
+        "chapter",
+        "capítulo",
+        "content",
+        "conteúdo",
+        "document"
+        ];
+
+        return genericTitles.Any(generic =>
+            normalizedTitle.Equals(
+                generic,
+                StringComparison.OrdinalIgnoreCase));
     }
 
     private static string NormalizeRelativePath(

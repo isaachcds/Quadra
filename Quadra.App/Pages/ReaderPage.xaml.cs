@@ -4,7 +4,12 @@ namespace Quadra.App.Pages;
 
 public partial class ReaderPage : ContentPage
 {
+    private const string TapNavigationPreferenceKey =
+        "ReaderTapNavigationEnabled";
+
     private readonly ReaderViewModel _viewModel;
+
+    private bool _tapNavigationEnabled;
 
     public ReaderPage(ReaderViewModel viewModel)
     {
@@ -12,6 +17,10 @@ public partial class ReaderPage : ContentPage
 
         _viewModel = viewModel;
         BindingContext = viewModel;
+
+        _tapNavigationEnabled = Preferences.Default.Get(
+            TapNavigationPreferenceKey,
+            true);
     }
 
     private void OnReaderTapped(
@@ -29,6 +38,24 @@ public partial class ReaderPage : ContentPage
         var leftLimit = width * 0.30;
         var rightLimit = width * 0.70;
 
+        /*
+         * No modo "Apenas deslizar", os toques laterais
+         * não mudam a página.
+         *
+         * O toque no centro continua mostrando ou
+         * escondendo os controles.
+         */
+        if (!_tapNavigationEnabled)
+        {
+            if (touchX > leftLimit &&
+                touchX < rightLimit)
+            {
+                AlternarControles();
+            }
+
+            return;
+        }
+
         if (touchX <= leftLimit)
         {
             VoltarPagina();
@@ -41,18 +68,84 @@ public partial class ReaderPage : ContentPage
             return;
         }
 
-        if (_viewModel.AlternarControlesCommand.CanExecute(null))
+        AlternarControles();
+    }
+
+    private async void OnReaderSettingsClicked(
+        object? sender,
+        EventArgs e)
+    {
+        var modoAtual = _tapNavigationEnabled
+            ? "Deslizar e tocar nas laterais"
+            : "Apenas deslizar";
+
+        var escolha =
+            await DisplayActionSheetAsync(
+                $"Navegação atual: {modoAtual}",
+                "Cancelar",
+                null,
+                "Deslizar e tocar nas laterais",
+                "Apenas deslizar");
+
+        switch (escolha)
         {
-            _viewModel.AlternarControlesCommand.Execute(null);
+            case "Deslizar e tocar nas laterais":
+                SalvarModoNavegacao(
+                    tapNavigationEnabled: true);
+
+                await DisplayAlertAsync(
+                    "Modo de navegação",
+                    "Agora você pode deslizar ou tocar nas laterais para mudar de página.",
+                    "OK");
+                break;
+
+            case "Apenas deslizar":
+                SalvarModoNavegacao(
+                    tapNavigationEnabled: false);
+
+                await DisplayAlertAsync(
+                    "Modo de navegação",
+                    "Agora as páginas serão alteradas somente ao deslizar.",
+                    "OK");
+                break;
+        }
+    }
+
+    private void SalvarModoNavegacao(
+        bool tapNavigationEnabled)
+    {
+        _tapNavigationEnabled =
+            tapNavigationEnabled;
+
+        Preferences.Default.Set(
+            TapNavigationPreferenceKey,
+            tapNavigationEnabled);
+    }
+
+    private void AlternarControles()
+    {
+        if (_viewModel
+            .AlternarControlesCommand
+            .CanExecute(null))
+        {
+            _viewModel
+                .AlternarControlesCommand
+                .Execute(null);
         }
     }
 
     private void VoltarPagina()
     {
-        if (!_viewModel.VoltarPaginaCommand.CanExecute(null))
+        if (!_viewModel
+            .VoltarPaginaCommand
+            .CanExecute(null))
+        {
             return;
+        }
 
-        _viewModel.VoltarPaginaCommand.Execute(null);
+        _viewModel
+            .VoltarPaginaCommand
+            .Execute(null);
 
         ReaderCarousel.ScrollTo(
             _viewModel.PaginaAtual,
@@ -62,10 +155,16 @@ public partial class ReaderPage : ContentPage
 
     private void AvancarPagina()
     {
-        if (!_viewModel.AvancarPaginaCommand.CanExecute(null))
+        if (!_viewModel
+            .AvancarPaginaCommand
+            .CanExecute(null))
+        {
             return;
+        }
 
-        _viewModel.AvancarPaginaCommand.Execute(null);
+        _viewModel
+            .AvancarPaginaCommand
+            .Execute(null);
 
         ReaderCarousel.ScrollTo(
             _viewModel.PaginaAtual,
