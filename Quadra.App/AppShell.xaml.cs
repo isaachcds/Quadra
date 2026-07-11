@@ -1,10 +1,22 @@
-﻿namespace Quadra.App
+﻿using Quadra.App.Pages;
+
+namespace Quadra.App;
+
+public partial class AppShell : Shell
 {
-    public partial class AppShell : Shell
+    public AppShell(LibraryPage libraryPage)
     {
-        public AppShell()
+        InitializeComponent();
+
+        Routing.RegisterRoute(
+            nameof(BookDetailsPage),
+            typeof(BookDetailsPage));
+
+        Items.Add(new ShellContent
         {
-            InitializeComponent();
-        }
+            Title = "Biblioteca",
+            Route = nameof(LibraryPage),
+            Content = libraryPage
+        });
     }
 }

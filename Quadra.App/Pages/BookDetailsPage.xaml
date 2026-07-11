@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentPage
+    x:Class="Quadra.App.Pages.BookDetailsPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{AppThemeBinding Light=#F7F7F7, Dark=#121212}"
+    Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Cabeçalho -->
+        <Grid
+            Grid.Row="0"
+            Padding="20,18"
+            ColumnDefinitions="Auto,*">
+
+            <Button
+                Grid.Column="0"
+                Text="‹"
+                WidthRequest="44"
+                HeightRequest="44"
+                CornerRadius="22"
+                Padding="0"
+                FontSize="32"
+                BackgroundColor="{AppThemeBinding Light=#EAEAEA, Dark=#242424}"
+                TextColor="{AppThemeBinding Light=#111111, Dark=#FFFFFF}"
+                Clicked="OnBackClicked" />
+
+            <Label
+                Grid.Column="1"
+                Text="Detalhes"
+                Margin="14,0,0,0"
+                VerticalOptions="Center"
+                FontSize="20"
+                FontAttributes="Bold"
+                TextColor="{AppThemeBinding Light=#111111, Dark=#FFFFFF}" />
+
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+
+            <VerticalStackLayout
+                Padding="24,8,24,32"
+                Spacing="22">
+
+                <!-- Capa -->
+                <Border
+                    WidthRequest="210"
+                    HeightRequest="300"
+                    StrokeThickness="0"
+                    HorizontalOptions="Center"
+                    BackgroundColor="{AppThemeBinding Light=#E9E5FF, Dark=#27213F}">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="18" />
+                    </Border.StrokeShape>
+
+                    <Grid>
+
+                        <!-- Placeholder -->
+                        <VerticalStackLayout
+                            HorizontalOptions="Center"
+                            VerticalOptions="Center"
+                            Spacing="8">
+
+                            <Label
+                                Text="▤"
+                                FontSize="50"
+                                HorizontalOptions="Center"
+                                TextColor="#6C4DF6" />
+
+                            <Label
+                                Text="{Binding Item.Format}"
+                                FontSize="14"
+                                FontAttributes="Bold"
+                                TextColor="{AppThemeBinding Light=#555555, Dark=#C7C7C7}" />
+
+                        </VerticalStackLayout>
+
+                        <!-- Capa real -->
+                        <Image
+                            Source="{Binding Item.CoverPath}"
+                            Aspect="AspectFill"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill" />
+
+                        <!-- Formato -->
+                        <Border
+                            Padding="10,5"
+                            Margin="10"
+                            StrokeThickness="0"
+                            BackgroundColor="#6C4DF6"
+                            HorizontalOptions="Start"
+                            VerticalOptions="End">
+
+                            <Border.StrokeShape>
+                                <RoundRectangle CornerRadius="9" />
+                            </Border.StrokeShape>
+
+                            <Label
+                                Text="{Binding Item.Format}"
+                                FontSize="11"
+                                FontAttributes="Bold"
+                                TextColor="White" />
+
+                        </Border>
+
+                    </Grid>
+
+                </Border>
+
+                <!-- Informações -->
+                <VerticalStackLayout Spacing="8">
+
+                    <Label
+                        Text="{Binding Item.Title}"
+                        FontSize="24"
+                        FontAttributes="Bold"
+                        HorizontalTextAlignment="Center"
+                        TextColor="{AppThemeBinding Light=#111111, Dark=#FFFFFF}" />
+
+                    <Label
+                        Text="{Binding Item.OriginalFileName}"
+                        FontSize="13"
+                        HorizontalTextAlignment="Center"
+                        LineBreakMode="TailTruncation"
+                        TextColor="{AppThemeBinding Light=#666666, Dark=#AFAFAF}" />
+
+                </VerticalStackLayout>
+
+                <!-- Progresso -->
+                <Border
+                    Padding="16"
+                    StrokeThickness="0"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1D1D1D}">
+
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+
+                    <VerticalStackLayout Spacing="10">
+
+                        <Grid ColumnDefinitions="*,Auto">
+
+                            <Label
+                                Grid.Column="0"
+                                Text="Progresso"
+                                FontSize="15"
+                                FontAttributes="Bold"
+                                TextColor="{AppThemeBinding Light=#111111, Dark=#FFFFFF}" />
+
+                            <Label
+                                Grid.Column="1"
+                                Text="{Binding TextoProgresso}"
+                                FontSize="12"
+                                TextColor="{AppThemeBinding Light=#666666, Dark=#AFAFAF}" />
+
+                        </Grid>
+
+                        <ProgressBar
+                            Progress="{Binding PercentualProgresso}"
+                            ProgressColor="#6C4DF6"
+                            BackgroundColor="{AppThemeBinding Light=#E5E5E5, Dark=#333333}" />
+
+                    </VerticalStackLayout>
+
+                </Border>
+
+                <!-- Metadados -->
+                <Grid
+                    ColumnDefinitions="*,*"
+                    ColumnSpacing="12">
+
+                    <Border
+                        Grid.Column="0"
+                        Padding="14"
+                        StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1D1D1D}">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="4">
+
+                            <Label
+                                Text="Formato"
+                                FontSize="11"
+                                TextColor="{AppThemeBinding Light=#777777, Dark=#999999}" />
+
+                            <Label
+                                Text="{Binding Item.Format}"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                TextColor="{AppThemeBinding Light=#111111, Dark=#FFFFFF}" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                    <Border
+                        Grid.Column="1"
+                        Padding="14"
+                        StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1D1D1D}">
+
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="14" />
+                        </Border.StrokeShape>
+
+                        <VerticalStackLayout Spacing="4">
+
+                            <Label
+                                Text="Páginas"
+                                FontSize="11"
+                                TextColor="{AppThemeBinding Light=#777777, Dark=#999999}" />
+
+                            <Label
+                                Text="{Binding Item.TotalPages}"
+                                FontSize="16"
+                                FontAttributes="Bold"
+                                TextColor="{AppThemeBinding Light=#111111, Dark=#FFFFFF}" />
+
+                        </VerticalStackLayout>
+
+                    </Border>
+
+                </Grid>
+
+                <!-- Ações -->
+                <Button
+                    Text="Começar leitura"
+                    HeightRequest="52"
+                    CornerRadius="16"
+                    BackgroundColor="#6C4DF6"
+                    TextColor="White"
+                    FontSize="15"
+                    FontAttributes="Bold"
+                    Command="{Binding IniciarLeituraCommand}" />
+
+                <Button
+                    Text="Remover da biblioteca"
+                    HeightRequest="48"
+                    CornerRadius="16"
+                    BackgroundColor="Transparent"
+                    TextColor="#E35D6A"
+                    FontSize="14"
+                    Command="{Binding ExcluirCommand}" />
+
+            </VerticalStackLayout>
+
+        </ScrollView>
+
+    </Grid>
+
+</ContentPage>
