@@ -1,4 +1,5 @@
 using Quadra.App.ViewModels;
+using Quadra.App.Controls;
 
 namespace Quadra.App.Pages;
 
@@ -8,7 +9,7 @@ public partial class ReaderPage : ContentPage
         "ReaderTapNavigationEnabled";
 
     private readonly ReaderViewModel _viewModel;
-
+    private bool _isPageZoomed;
     private bool _tapNavigationEnabled;
 
     public ReaderPage(ReaderViewModel viewModel)
@@ -24,13 +25,23 @@ public partial class ReaderPage : ContentPage
     }
 
     private void OnReaderTapped(
-        object? sender,
-        TappedEventArgs e)
+    object? sender,
+    TappedEventArgs e)
     {
+        /*
+         * Enquanto a imagem estiver ampliada, nenhum toque
+         * deve avançar ou voltar a página.
+         */
+        if (_isPageZoomed)
+            return;
+
         var position = e.GetPosition(ReaderCarousel);
 
-        if (position is null || ReaderCarousel.Width <= 0)
+        if (position is null ||
+            ReaderCarousel.Width <= 0)
+        {
             return;
+        }
 
         var touchX = position.Value.X;
         var width = ReaderCarousel.Width;
@@ -38,13 +49,6 @@ public partial class ReaderPage : ContentPage
         var leftLimit = width * 0.30;
         var rightLimit = width * 0.70;
 
-        /*
-         * No modo "Apenas deslizar", os toques laterais
-         * não mudam a página.
-         *
-         * O toque no centro continua mostrando ou
-         * escondendo os controles.
-         */
         if (!_tapNavigationEnabled)
         {
             if (touchX > leftLimit &&
@@ -151,6 +155,21 @@ public partial class ReaderPage : ContentPage
             _viewModel.PaginaAtual,
             position: ScrollToPosition.Center,
             animate: true);
+    }
+
+    private void OnZoomStateChanged(
+    object? sender,
+    ZoomStateChangedEventArgs e)
+    {
+        _isPageZoomed = e.IsZoomed;
+
+        /*
+         * Enquanto a pinça estiver acontecendo ou a imagem
+         * permanecer ampliada, o CarouselView não pode trocar
+         * de página.
+         */
+        ReaderCarousel.IsSwipeEnabled =
+            !e.IsZoomed;
     }
 
     private void AvancarPagina()
