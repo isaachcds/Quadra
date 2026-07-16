@@ -17,12 +17,15 @@ public class CoverService
     ];
 
     private readonly IPdfCoverService? _pdfCoverService;
+    private readonly IStorageSpaceService _storageSpaceService;
 
     private readonly string _coversDirectory;
 
     public CoverService(
-     IPdfCoverService? pdfCoverService = null)
+        IStorageSpaceService storageSpaceService,
+        IPdfCoverService? pdfCoverService = null)
     {
+        _storageSpaceService = storageSpaceService;
         _pdfCoverService = pdfCoverService;
 
         _coversDirectory = Path.Combine(
@@ -73,6 +76,8 @@ public class CoverService
         var coverPath = CreateCoverPath(
             item,
             ".png");
+
+        EnsureCoverSpace(coverPath, StorageSpacePolicy.CoverAllowanceBytes);
 
         return await _pdfCoverService.GenerateCoverAsync(
             item,
@@ -486,16 +491,31 @@ public class CoverService
                IsImage(href);
     }
 
-    private static async Task SaveCoverAsync(
+    private async Task SaveCoverAsync(
         Stream inputStream,
         string coverPath,
         CancellationToken cancellationToken)
     {
+        var estimatedBytes = inputStream.CanSeek
+            ? Math.Max(0, inputStream.Length - inputStream.Position)
+            : StorageSpacePolicy.CoverAllowanceBytes;
+
+        EnsureCoverSpace(coverPath, estimatedBytes);
+
         await AtomicFile.WriteAsync(
             coverPath,
             outputStream => inputStream.CopyToAsync(
                 outputStream,
                 cancellationToken),
             cancellationToken: cancellationToken);
+    }
+
+    private void EnsureCoverSpace(string destinationPath, long estimatedBytes)
+    {
+        StorageSpacePolicy.EnsureAvailable(
+            _storageSpaceService,
+            destinationPath,
+            estimatedBytes,
+            "Não há espaço disponível suficiente para gerar a capa.");
     }
 }

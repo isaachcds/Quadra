@@ -4,4 +4,8 @@
     x:Class="Quadra.App.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    FlyoutBehavior="Disabled" />
+    FlyoutBehavior="Disabled"
+    Shell.TabBarBackgroundColor="{AppThemeBinding Light={StaticResource ColorSurfaceLowestLight}, Dark={StaticResource ColorSurfaceLowestDark}}"
+    Shell.TabBarForegroundColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}"
+    Shell.TabBarTitleColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}"
+    Shell.TabBarUnselectedColor="{AppThemeBinding Light={StaticResource ColorTextSecondaryLight}, Dark={StaticResource ColorTextSecondaryDark}}" />

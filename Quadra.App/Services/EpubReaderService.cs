@@ -9,9 +9,11 @@ namespace Quadra.App.Services;
 public class EpubReaderService : IEpubReaderService
 {
     private readonly string _epubCacheDirectory;
+    private readonly IStorageSpaceService _storageSpaceService;
 
-    public EpubReaderService()
+    public EpubReaderService(IStorageSpaceService storageSpaceService)
     {
+        _storageSpaceService = storageSpaceService;
         _epubCacheDirectory = Path.Combine(
             FileSystem.Current.CacheDirectory,
             "EpubBooks");
@@ -110,7 +112,7 @@ public class EpubReaderService : IEpubReaderService
         return GetItemCacheDirectory(item);
     }
 
-    private static async Task ExtractBookAsync(
+    private async Task ExtractBookAsync(
         string epubFilePath,
         string destinationDirectory,
         CancellationToken cancellationToken)
@@ -144,11 +146,17 @@ public class EpubReaderService : IEpubReaderService
 
             foreach (var entry in archive.Entries)
             {
-                cancellationToken.ThrowIfCancellationRequested();
                 expandedBytes = checked(expandedBytes + entry.Length);
 
                 if (expandedBytes > FileProcessingLimits.MaximumExpandedBytes)
                     throw new InvalidDataException("O EPUB expandido é muito grande.");
+            }
+
+            EnsureCacheSpace(destinationDirectory, expandedBytes);
+
+            foreach (var entry in archive.Entries)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
 
                 var destinationPath = EpubPathResolver.ResolveInsideRoot(
                     destinationDirectory,
@@ -159,6 +167,8 @@ public class EpubReaderService : IEpubReaderService
                     Directory.CreateDirectory(destinationPath);
                     continue;
                 }
+
+                EnsureCacheSpace(destinationPath, entry.Length);
 
                 await using var inputStream = entry.Open();
 
@@ -230,6 +240,15 @@ public class EpubReaderService : IEpubReaderService
         return Path.Combine(
             _epubCacheDirectory,
             identifier);
+    }
+
+    private void EnsureCacheSpace(string destinationPath, long estimatedBytes)
+    {
+        StorageSpacePolicy.EnsureAvailable(
+            _storageSpaceService,
+            destinationPath,
+            estimatedBytes,
+            "Não há espaço disponível suficiente para preparar este EPUB.");
     }
 
     private static async Task<string> ExtractChapterTitleAsync(

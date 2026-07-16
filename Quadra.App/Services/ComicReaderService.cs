@@ -16,11 +16,14 @@ public class ComicReaderService
 
     private readonly string _comicCacheDirectory;
     private readonly IPdfReaderService _pdfReaderService;
+    private readonly IStorageSpaceService _storageSpaceService;
 
     public ComicReaderService(
-        IPdfReaderService pdfReaderService)
+        IPdfReaderService pdfReaderService,
+        IStorageSpaceService storageSpaceService)
     {
         _pdfReaderService = pdfReaderService;
+        _storageSpaceService = storageSpaceService;
 
         _comicCacheDirectory = Path.Combine(
             FileSystem.Current.CacheDirectory,
@@ -71,9 +74,9 @@ public class ComicReaderService
         using var archive =
             ArchiveFactory.OpenArchive(item.FilePath);
 
-        EnsureArchiveLimits(
-            archive.Entries.Count(),
-            archive.Entries.Sum(entry => Math.Max(0, entry.Size)));
+        var expandedBytes = archive.Entries.Sum(entry => Math.Max(0, entry.Size));
+        EnsureArchiveLimits(archive.Entries.Count(), expandedBytes);
+        EnsureCacheSpace(itemCacheDirectory, expandedBytes);
 
         var imageEntries = archive.Entries
             .Where(entry =>
@@ -110,6 +113,7 @@ public class ComicReaderService
             if (!IsValidCachedFile(destinationPath))
             {
                 AtomicFile.DeleteIfExists(destinationPath);
+                EnsureCacheSpace(destinationPath, Math.Max(0, entry.Size));
                 await using var inputStream = entry.OpenEntryStream();
 
                 await AtomicFile.WriteAsync(
@@ -140,9 +144,9 @@ public class ComicReaderService
         using var archive =
             System.IO.Compression.ZipFile.OpenRead(item.FilePath);
 
-        EnsureArchiveLimits(
-            archive.Entries.Count,
-            archive.Entries.Sum(entry => Math.Max(0, entry.Length)));
+        var expandedBytes = archive.Entries.Sum(entry => Math.Max(0, entry.Length));
+        EnsureArchiveLimits(archive.Entries.Count, expandedBytes);
+        EnsureCacheSpace(itemCacheDirectory, expandedBytes);
 
         var imageEntries = archive.Entries
             .Where(entry =>
@@ -177,6 +181,7 @@ public class ComicReaderService
             if (!IsValidCachedFile(destinationPath))
             {
                 AtomicFile.DeleteIfExists(destinationPath);
+                EnsureCacheSpace(destinationPath, Math.Max(0, entry.Length));
                 await using var inputStream = entry.Open();
 
                 await AtomicFile.WriteAsync(
@@ -270,5 +275,14 @@ public class ComicReaderService
     private static bool IsValidCachedFile(string path)
     {
         return File.Exists(path) && new FileInfo(path).Length > 0;
+    }
+
+    private void EnsureCacheSpace(string destinationPath, long estimatedBytes)
+    {
+        StorageSpacePolicy.EnsureAvailable(
+            _storageSpaceService,
+            destinationPath,
+            estimatedBytes,
+            "Não há espaço disponível suficiente para preparar esta obra.");
     }
 }

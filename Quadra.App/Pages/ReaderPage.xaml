@@ -6,7 +6,8 @@
     xmlns:controls="clr-namespace:Quadra.App.Controls"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     BackgroundColor="Black"
-    Shell.NavBarIsVisible="False">
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="False">
 
     <Grid>
 

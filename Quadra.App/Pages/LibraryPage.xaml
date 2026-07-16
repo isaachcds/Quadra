@@ -1,308 +1,242 @@
 <?xml version="1.0" encoding="utf-8" ?>
-
 <ContentPage
     x:Class="Quadra.App.Pages.LibraryPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="{AppThemeBinding Light=#F7F7F7, Dark=#121212}"
-    Shell.NavBarIsVisible="False">
+    xmlns:controls="clr-namespace:Quadra.App.Controls"
+    xmlns:services="clr-namespace:Quadra.App.Services"
+    xmlns:viewModels="clr-namespace:Quadra.App.ViewModels"
+    x:Name="PageRoot"
+    x:DataType="viewModels:LibraryViewModel"
+    AutomationId="LibraryPage"
+    BackgroundColor="{AppThemeBinding Light={StaticResource ColorBackgroundLight}, Dark={StaticResource ColorBackgroundDark}}"
+    SafeAreaEdges="Container"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="True">
 
-    <Grid
-        Padding="24"
-        RowDefinitions="Auto,*">
-
-        <!-- Cabeçalho -->
+    <Grid RowDefinitions="Auto,*">
         <Grid
-            Grid.Row="0"
-            ColumnDefinitions="*,Auto"
-            Margin="0,12,0,24">
-
-            <VerticalStackLayout
-                Grid.Column="0"
-                Spacing="2">
-
-                <Label
-                    Text="Quadra"
-                    FontSize="30"
-                    FontAttributes="Bold"
-                    TextColor="{AppThemeBinding Light=#111111, Dark=#FFFFFF}" />
-
-                <Label
-                    Text="Sua biblioteca"
-                    FontSize="15"
-                    TextColor="{AppThemeBinding Light=#666666, Dark=#AFAFAF}" />
-
-            </VerticalStackLayout>
-
-            <Button
+            Padding="20,16,20,10"
+            ColumnDefinitions="Auto,*,Auto,Auto"
+            ColumnSpacing="{StaticResource SpacingSm}">
+            <Image
+                Source="quadra_mark.svg"
+                WidthRequest="40"
+                HeightRequest="40"
+                SemanticProperties.Description="Símbolo do Quadra"
+                VerticalOptions="Center" />
+            <Label
                 Grid.Column="1"
-                Text="+"
+                Text="Biblioteca"
+                Style="{StaticResource HeadlineMobile}"
+                TextColor="{AppThemeBinding Light={StaticResource ColorTextPrimaryLight}, Dark={StaticResource ColorTextPrimaryDark}}"
+                VerticalOptions="Center" />
+            <ImageButton
+                Grid.Column="2"
+                Source="icon_search.svg"
                 WidthRequest="48"
                 HeightRequest="48"
-                CornerRadius="24"
-                FontSize="26"
-                Padding="0"
-                VerticalOptions="Center"
-                BackgroundColor="#6C4DF6"
-                TextColor="White"
-                Command="{Binding ImportarArquivoCommand}" />
-
+                Padding="12"
+                IsEnabled="False"
+                BackgroundColor="Transparent"
+                SemanticProperties.Description="Busca será adicionada em breve" />
+            <ImageButton
+                Grid.Column="3"
+                Source="icon_filter.svg"
+                WidthRequest="48"
+                HeightRequest="48"
+                Padding="12"
+                BackgroundColor="Transparent"
+                Command="{Binding MostrarFiltrosCommand}"
+                SemanticProperties.Description="Mostrar ou ocultar filtros por formato" />
         </Grid>
 
-        <!-- Estado vazio -->
-        <VerticalStackLayout
-            Grid.Row="1"
-            IsVisible="{Binding BibliotecaVazia}"
-            HorizontalOptions="Center"
-            VerticalOptions="Center"
-            MaximumWidthRequest="320"
-            Spacing="12">
+        <Grid Grid.Row="1" Padding="20,0" RowDefinitions="Auto,Auto,*">
+            <VerticalStackLayout
+                IsVisible="{Binding PossuiContinuarLendo}"
+                Spacing="{StaticResource SpacingSm}"
+                Margin="0,8,0,16">
+                <Label Text="Continuar lendo" Style="{StaticResource SectionTitleStyle}" />
+                <controls:ContinueReadingCard
+                    Item="{Binding ContinuarLendo}"
+                    OpenCommand="{Binding AbrirDetalhesCommand}" />
+            </VerticalStackLayout>
 
-            <Border
-                WidthRequest="96"
-                HeightRequest="96"
-                StrokeThickness="0"
-                BackgroundColor="{AppThemeBinding Light=#E9E5FF, Dark=#27213F}"
-                HorizontalOptions="Center">
+            <ScrollView
+                Grid.Row="1"
+                Orientation="Horizontal"
+                HorizontalScrollBarVisibility="Never"
+                IsVisible="{Binding FiltrosVisiveis}"
+                Margin="0,0,0,16">
+                <HorizontalStackLayout Spacing="{StaticResource SpacingSm}">
+                    <Button
+                        AutomationId="FormatFilterAll"
+                        Text="Todos"
+                        Style="{StaticResource FilterChipStyle}"
+                        Command="{Binding SelecionarFiltroCommand}"
+                        CommandParameter="{x:Static services:LibraryFormatFilter.All}"
+                        SemanticProperties.Description="{Binding DescricaoFiltroTodos}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding FiltroTodosSelecionado}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button
+                        AutomationId="FormatFilterEpub"
+                        Text="EPUB"
+                        Style="{StaticResource FilterChipStyle}"
+                        Command="{Binding SelecionarFiltroCommand}"
+                        CommandParameter="{x:Static services:LibraryFormatFilter.Epub}"
+                        SemanticProperties.Description="{Binding DescricaoFiltroEpub}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding FiltroEpubSelecionado}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button
+                        AutomationId="FormatFilterPdf"
+                        Text="PDF"
+                        Style="{StaticResource FilterChipStyle}"
+                        Command="{Binding SelecionarFiltroCommand}"
+                        CommandParameter="{x:Static services:LibraryFormatFilter.Pdf}"
+                        SemanticProperties.Description="{Binding DescricaoFiltroPdf}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding FiltroPdfSelecionado}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button
+                        AutomationId="FormatFilterComics"
+                        Text="CBR/CBZ"
+                        Style="{StaticResource FilterChipStyle}"
+                        Command="{Binding SelecionarFiltroCommand}"
+                        CommandParameter="{x:Static services:LibraryFormatFilter.Comics}"
+                        SemanticProperties.Description="{Binding DescricaoFiltroComics}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding FiltroComicsSelecionado}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                </HorizontalStackLayout>
+            </ScrollView>
 
-                <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="48" />
-                </Border.StrokeShape>
+            <CollectionView
+                Grid.Row="2"
+                AutomationId="LibraryGrid"
+                IsVisible="{Binding BibliotecaPreenchida}"
+                ItemsSource="{Binding ItensFiltrados}"
+                SelectionMode="None">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout
+                        Orientation="Vertical"
+                        Span="2"
+                        HorizontalItemSpacing="16"
+                        VerticalItemSpacing="24" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:LibraryBookViewData">
+                        <controls:LibraryBookCard
+                            Item="{Binding .}"
+                            OpenCommand="{Binding BindingContext.AbrirDetalhesCommand, Source={x:Reference PageRoot}}"
+                            DeleteCommand="{Binding BindingContext.ExcluirItemCommand, Source={x:Reference PageRoot}}" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="96" BackgroundColor="Transparent" />
+                </CollectionView.Footer>
+            </CollectionView>
 
+            <VerticalStackLayout
+                Grid.Row="2"
+                IsVisible="{Binding FiltroSemResultados}"
+                Spacing="{StaticResource SpacingMd}"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
                 <Label
-                    Text="▤"
-                    FontSize="42"
-                    HorizontalOptions="Center"
-                    VerticalOptions="Center"
-                    TextColor="#6C4DF6" />
+                    Text="Nenhuma obra neste formato"
+                    Style="{StaticResource BodyTextStyle}"
+                    FontFamily="OpenSansSemibold"
+                    HorizontalTextAlignment="Center" />
+                <Button
+                    Text="Mostrar todos"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding VoltarParaTodosCommand}" />
+            </VerticalStackLayout>
 
-            </Border>
+            <controls:EmptyLibraryView
+                Grid.RowSpan="3"
+                IsVisible="{Binding BibliotecaVazia}"
+                ImportCommand="{Binding ImportarArquivoCommand}"
+                IsImportEnabled="{Binding PodeImportar}" />
 
-            <Label
-                Text="Sua biblioteca está vazia"
-                FontSize="20"
-                FontAttributes="Bold"
-                HorizontalTextAlignment="Center"
-                TextColor="{AppThemeBinding Light=#111111, Dark=#FFFFFF}" />
+            <VerticalStackLayout
+                Grid.RowSpan="3"
+                IsVisible="{Binding TemErro}"
+                Spacing="{StaticResource SpacingMd}"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+                <Label Text="{Binding MensagemErro}" Style="{StaticResource BodyTextStyle}" />
+                <Button
+                    Text="Tentar novamente"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding CarregarBibliotecaCommand}" />
+            </VerticalStackLayout>
 
-            <Label
-                Text="Adicione um arquivo CBR, CBZ ou PDF para começar sua leitura."
-                FontSize="14"
-                HorizontalTextAlignment="Center"
-                TextColor="{AppThemeBinding Light=#666666, Dark=#AFAFAF}" />
+            <VerticalStackLayout
+                Grid.RowSpan="3"
+                IsVisible="{Binding EstaCarregandoBiblioteca}"
+                Spacing="{StaticResource SpacingSm}"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+                <ActivityIndicator IsRunning="{Binding EstaCarregandoBiblioteca}" />
+                <Label Text="Carregando biblioteca…" Style="{StaticResource SecondaryTextStyle}" />
+            </VerticalStackLayout>
 
-            <Button
-                Text="Adicionar arquivo"
-                Margin="0,12,0,0"
-                Padding="24,12"
-                CornerRadius="14"
-                BackgroundColor="#6C4DF6"
-                TextColor="White"
-                FontAttributes="Bold"
-                Command="{Binding ImportarArquivoCommand}" />
+            <ImageButton
+                Grid.RowSpan="3"
+                AutomationId="ImportButton"
+                Source="icon_import.svg"
+                WidthRequest="64"
+                HeightRequest="64"
+                Padding="18"
+                Margin="0,0,4,20"
+                CornerRadius="32"
+                BackgroundColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                IsVisible="{Binding PossuiItens}"
+                IsEnabled="{Binding PodeImportar}"
+                Command="{Binding ImportarArquivoCommand}"
+                SemanticProperties.Description="Importar arquivo" />
+        </Grid>
 
-            <ActivityIndicator
-                IsRunning="{Binding EstaImportando}"
-                IsVisible="{Binding EstaImportando}"
-                Color="#6C4DF6"
-                HorizontalOptions="Center" />
-
-        </VerticalStackLayout>
-
-        <!-- Biblioteca com itens -->
-        <CollectionView
-            Grid.Row="1"
-            IsVisible="{Binding PossuiItens}"
-            ItemsSource="{Binding Itens}"
-            SelectionMode="None">
-
-            <CollectionView.ItemsLayout>
-                <GridItemsLayout
-                    Orientation="Vertical"
-                    Span="2"
-                    HorizontalItemSpacing="14"
-                    VerticalItemSpacing="18" />
-            </CollectionView.ItemsLayout>
-
-            <CollectionView.EmptyView>
-                <VerticalStackLayout
-                    HorizontalOptions="Center"
-                    VerticalOptions="Center"
-                    Spacing="8">
-
-                    <ActivityIndicator
-                        IsRunning="{Binding EstaImportando}"
-                        IsVisible="{Binding EstaImportando}"
-                        Color="#6C4DF6" />
-
-                    <Label
-                        Text="Carregando biblioteca..."
-                        IsVisible="{Binding EstaImportando}"
-                        FontSize="13"
-                        TextColor="{AppThemeBinding Light=#666666, Dark=#AFAFAF}" />
-
-                </VerticalStackLayout>
-            </CollectionView.EmptyView>
-
-            <CollectionView.ItemTemplate>
-                <DataTemplate>
-
-                    <Grid
-                        RowDefinitions="Auto,Auto,Auto"
-                        RowSpacing="8">
-
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer
-                                Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.AbrirDetalhesCommand}"
-                                CommandParameter="{Binding .}" />
-                        </Grid.GestureRecognizers>
-
-                        <!-- Capa -->
-                        <Border
-                            Grid.Row="0"
-                            HeightRequest="190"
-                            StrokeThickness="0"
-                            BackgroundColor="{AppThemeBinding Light=#E9E5FF, Dark=#27213F}">
-
-                            <Border.StrokeShape>
-                                <RoundRectangle CornerRadius="14" />
-                            </Border.StrokeShape>
-
-                            <Grid>
-
-                                <!-- Placeholder -->
-                                <VerticalStackLayout
-                                    HorizontalOptions="Center"
-                                    VerticalOptions="Center"
-                                    Spacing="8">
-
-                                    <Label
-                                        Text="▤"
-                                        FontSize="42"
-                                        HorizontalOptions="Center"
-                                        TextColor="#6C4DF6" />
-
-                                    <Label
-                                        Text="{Binding Format}"
-                                        FontSize="12"
-                                        FontAttributes="Bold"
-                                        HorizontalOptions="Center"
-                                        TextColor="{AppThemeBinding Light=#555555, Dark=#C7C7C7}" />
-
-                                </VerticalStackLayout>
-
-                                <!-- Capa real -->
-                                <Image
-                                    Source="{Binding CoverPath}"
-                                    Aspect="AspectFill"
-                                    HorizontalOptions="Fill"
-                                    VerticalOptions="Fill" />
-
-                                <!-- Selo do formato -->
-                                <Border
-                                    Padding="8,4"
-                                    Margin="8"
-                                    StrokeThickness="0"
-                                    BackgroundColor="#6C4DF6"
-                                    HorizontalOptions="Start"
-                                    VerticalOptions="End">
-
-                                    <Border.StrokeShape>
-                                        <RoundRectangle CornerRadius="8" />
-                                    </Border.StrokeShape>
-
-                                    <Label
-                                        Text="{Binding Format}"
-                                        FontSize="10"
-                                        FontAttributes="Bold"
-                                        TextColor="White" />
-
-                                </Border>
-
-                                <!-- Botão de exclusão -->
-                                <Button
-                                    Text="⋮"
-                                    WidthRequest="36"
-                                    HeightRequest="36"
-                                    Padding="0"
-                                    Margin="0,4,4,0"
-                                    FontSize="20"
-                                    CornerRadius="18"
-                                    BackgroundColor="#66000000"
-                                    TextColor="White"
-                                    HorizontalOptions="End"
-                                    VerticalOptions="Start"
-                                    Command="{Binding Source={RelativeSource AncestorType={x:Type ContentPage}}, Path=BindingContext.ExcluirItemCommand}"
-                                    CommandParameter="{Binding .}" />
-
-                            </Grid>
-
-                        </Border>
-
-                        <!-- Título -->
-                        <Label
-                            Grid.Row="1"
-                            Text="{Binding Title}"
-                            FontSize="14"
-                            FontAttributes="Bold"
-                            MaxLines="2"
-                            LineBreakMode="TailTruncation"
-                            TextColor="{AppThemeBinding Light=#111111, Dark=#FFFFFF}" />
-
-                        <!-- Data -->
-                        <Label
-                            Grid.Row="2"
-                            Text="{Binding ImportedAt, StringFormat='Importado em {0:dd/MM/yyyy}'}"
-                            FontSize="11"
-                            TextColor="{AppThemeBinding Light=#777777, Dark=#999999}" />
-
-                    </Grid>
-
-                </DataTemplate>
-            </CollectionView.ItemTemplate>
-
-        </CollectionView>
-
-        <!-- Sobreposição durante importação -->
         <Grid
             Grid.RowSpan="2"
             IsVisible="{Binding EstaImportando}"
-            BackgroundColor="#66000000"
+            BackgroundColor="{AppThemeBinding Light={StaticResource ColorSurfaceLowestLight}, Dark={StaticResource ColorSurfaceLowestDark}}"
+            Opacity="0.96"
             InputTransparent="False">
-
             <Border
+                Style="{StaticResource CardBorderStyle}"
                 Padding="24"
-                StrokeThickness="0"
-                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}"
                 HorizontalOptions="Center"
                 VerticalOptions="Center">
-
                 <Border.StrokeShape>
-                    <RoundRectangle CornerRadius="18" />
+                    <RoundRectangle CornerRadius="{StaticResource RadiusLarge}" />
                 </Border.StrokeShape>
-
-                <VerticalStackLayout
-                    Spacing="12"
-                    HorizontalOptions="Center">
-
-                    <ActivityIndicator
-                        IsRunning="{Binding EstaImportando}"
-                        Color="#6C4DF6"
-                        WidthRequest="36"
-                        HeightRequest="36" />
-
-                    <Label
-                        Text="Importando arquivo..."
-                        FontSize="14"
-                        FontAttributes="Bold"
-                        TextColor="{AppThemeBinding Light=#111111, Dark=#FFFFFF}" />
-
+                <VerticalStackLayout Spacing="{StaticResource SpacingMd}" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding EstaImportando}" />
+                    <Label Text="Importando arquivo…" Style="{StaticResource BodyTextStyle}" />
                 </VerticalStackLayout>
-
             </Border>
-
         </Grid>
-
     </Grid>
-
 </ContentPage>

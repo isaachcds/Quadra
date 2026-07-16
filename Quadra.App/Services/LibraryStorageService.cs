@@ -6,9 +6,11 @@ namespace Quadra.App.Services;
 public class LibraryStorageService
 {
     private readonly string _libraryDirectory;
+    private readonly IStorageSpaceService _storageSpaceService;
 
-    public LibraryStorageService()
+    public LibraryStorageService(IStorageSpaceService storageSpaceService)
     {
+        _storageSpaceService = storageSpaceService;
         _libraryDirectory = Path.Combine(
             FileSystem.Current.AppDataDirectory,
             "Library");
@@ -38,44 +40,74 @@ public class LibraryStorageService
             _libraryDirectory,
             storedFileName);
 
-        FileProcessingLimits.EnsureFreeSpace(destinationPath);
-
         await using var inputStream = await file.OpenReadAsync();
+        var sourceLength = TryGetLength(inputStream);
 
-        await AtomicFile.WriteAsync(
+        if (sourceLength > FileProcessingLimits.MaximumImportBytes)
+        {
+            throw new InvalidDataException(
+                "Este arquivo excede o limite de processamento configurado pelo Quadra.");
+        }
+
+        StorageSpacePolicy.EnsureAvailable(
+            _storageSpaceService,
             destinationPath,
-            async outputStream =>
-            {
-                var buffer = new byte[81920];
-                long totalBytes = 0;
+            StorageSpacePolicy.EstimateImportBytes(sourceLength ?? 0),
+            "Não há espaço disponível suficiente para importar este arquivo.");
 
-                while (true)
+        try
+        {
+            await AtomicFile.WriteAsync(
+                destinationPath,
+                async outputStream =>
                 {
-                    var read = await inputStream.ReadAsync(
-                        buffer,
-                        cancellationToken);
+                    var buffer = new byte[81920];
+                    long totalBytes = 0;
 
-                    if (read == 0)
-                        break;
-
-                    totalBytes += read;
-
-                    if (totalBytes > FileProcessingLimits.MaximumImportBytes)
+                    while (true)
                     {
-                        throw new InvalidDataException(
-                            "O arquivo é maior que o limite permitido.");
-                    }
+                        var read = await inputStream.ReadAsync(
+                            buffer,
+                            cancellationToken);
 
-                    await outputStream.WriteAsync(
-                        buffer.AsMemory(0, read),
-                        cancellationToken);
-                }
-            },
-            partialPath => FileValidationService.ValidateAsync(
-                partialPath,
-                extension,
-                cancellationToken),
-            cancellationToken);
+                        if (read == 0)
+                            break;
+
+                        totalBytes += read;
+
+                        if (totalBytes > FileProcessingLimits.MaximumImportBytes)
+                        {
+                            throw new InvalidDataException(
+                                "Este arquivo excede o limite de processamento configurado pelo Quadra.");
+                        }
+
+                        if (!sourceLength.HasValue)
+                        {
+                            StorageSpacePolicy.EnsureAvailable(
+                                _storageSpaceService,
+                                destinationPath,
+                                read,
+                                "Não há espaço disponível suficiente para importar este arquivo.");
+                        }
+
+                        await outputStream.WriteAsync(
+                            buffer.AsMemory(0, read),
+                            cancellationToken);
+                    }
+                },
+                partialPath => FileValidationService.ValidateAsync(
+                    partialPath,
+                    extension,
+                    cancellationToken),
+                cancellationToken);
+        }
+        catch (IOException exception) when (
+            exception is not InsufficientStorageException)
+        {
+            throw new IOException(
+                "Não foi possível gravar o arquivo no armazenamento interno.",
+                exception);
+        }
 
         var title = Path.GetFileNameWithoutExtension(file.FileName);
 
@@ -109,5 +141,19 @@ public class LibraryStorageService
         }
 
         return Task.CompletedTask;
+    }
+
+    private static long? TryGetLength(Stream stream)
+    {
+        try
+        {
+            return stream.CanSeek
+                ? Math.Max(0, stream.Length - stream.Position)
+                : null;
+        }
+        catch (NotSupportedException)
+        {
+            return null;
+        }
     }
 }

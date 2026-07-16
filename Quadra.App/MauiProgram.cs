@@ -49,6 +49,10 @@ public static class MauiProgram
 
 #if ANDROID
         builder.Services.AddSingleton<
+            IStorageSpaceService,
+            AndroidStorageSpaceService>();
+
+        builder.Services.AddSingleton<
             IPdfCoverService,
             PdfCoverService>();
 
@@ -56,6 +60,10 @@ public static class MauiProgram
             IPdfReaderService,
             PdfReaderService>();
 #else
+builder.Services.AddSingleton<
+    IStorageSpaceService,
+    StorageSpaceService>();
+
 builder.Services.AddSingleton<
     IPdfReaderService,
     UnsupportedPdfReaderService>();
@@ -72,6 +80,9 @@ builder.Services.AddSingleton<
 
         builder.Services.AddTransient<LibraryViewModel>();
         builder.Services.AddTransient<LibraryPage>();
+        builder.Services.AddTransient<CollectionsPage>();
+        builder.Services.AddTransient<HistoryPage>();
+        builder.Services.AddTransient<SettingsPage>();
 
         builder.Services.AddTransient<BookDetailsViewModel>();
         builder.Services.AddTransient<BookDetailsPage>();

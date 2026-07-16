@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="Quadra.App.Controls.ContinueReadingCard"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:Quadra.App.Controls"
+    x:Name="Root"
+    AutomationId="ContinueReadingCard">
+
+    <Border Style="{StaticResource CardBorderStyle}" Padding="{StaticResource SpacingMd}">
+        <Border.StrokeShape>
+            <RoundRectangle CornerRadius="{StaticResource RadiusLarge}" />
+        </Border.StrokeShape>
+        <Border.GestureRecognizers>
+            <TapGestureRecognizer
+                Command="{Binding OpenCommand, Source={x:Reference Root}}"
+                CommandParameter="{Binding Item.Item, Source={x:Reference Root}}" />
+        </Border.GestureRecognizers>
+
+        <Grid ColumnDefinitions="84,*" ColumnSpacing="{StaticResource SpacingMd}">
+            <controls:BookCoverView
+                HeightRequest="118"
+                CoverPath="{Binding Item.CoverPath, Source={x:Reference Root}}"
+                HasCover="{Binding Item.HasCover, Source={x:Reference Root}}"
+                Format="{Binding Item.Format, Source={x:Reference Root}}"
+                CoverDescription="{Binding Item.CoverDescription, Source={x:Reference Root}}" />
+
+            <VerticalStackLayout Grid.Column="1" Spacing="{StaticResource SpacingSm}" VerticalOptions="Center">
+                <Label
+                    Text="{Binding Item.Title, Source={x:Reference Root}}"
+                    Style="{StaticResource BodyTextStyle}"
+                    FontFamily="OpenSansSemibold"
+                    MaxLines="2"
+                    LineBreakMode="TailTruncation" />
+                <Label
+                    Text="{Binding Item.ProgressText, Source={x:Reference Root}}"
+                    Style="{StaticResource SecondaryTextStyle}" />
+                <ProgressBar
+                    Progress="{Binding Item.ProgressValue, Source={x:Reference Root}}"
+                    Style="{StaticResource ProgressBarStyle}"
+                    HeightRequest="5" />
+                <Label
+                    Text="Continuar leitura"
+                    Style="{StaticResource LabelMedium}"
+                    FontFamily="OpenSansSemibold"
+                    TextColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}" />
+            </VerticalStackLayout>
+        </Grid>
+    </Border>
+</ContentView>

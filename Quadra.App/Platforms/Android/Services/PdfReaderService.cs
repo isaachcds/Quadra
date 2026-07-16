@@ -15,9 +15,11 @@ public class PdfReaderService : IPdfReaderService
     private const int TargetWidth = FileProcessingLimits.PdfTargetWidth;
 
     private readonly string _pdfCacheDirectory;
+    private readonly IStorageSpaceService _storageSpaceService;
 
-    public PdfReaderService()
+    public PdfReaderService(IStorageSpaceService storageSpaceService)
     {
+        _storageSpaceService = storageSpaceService;
         _pdfCacheDirectory = SystemPath.Combine(
             FileSystem.Current.CacheDirectory,
             "PdfPages");
@@ -69,7 +71,11 @@ public class PdfReaderService : IPdfReaderService
         Directory.CreateDirectory(
             itemCacheDirectory);
 
-        FileProcessingLimits.EnsureFreeSpace(itemCacheDirectory);
+        StorageSpacePolicy.EnsureAvailable(
+            _storageSpaceService,
+            itemCacheDirectory,
+            0,
+            "Não há espaço disponível suficiente para preparar este PDF.");
 
         using var javaFile =
             new Java.IO.File(item.FilePath);
@@ -114,11 +120,21 @@ public class PdfReaderService : IPdfReaderService
                 new FileInfo(destinationPath).Length <= 0)
             {
                 AtomicFile.DeleteIfExists(destinationPath);
-                RenderPage(
-                    renderer,
-                    index,
-                    destinationPath,
-                    cancellationToken);
+                try
+                {
+                    RenderPage(
+                        renderer,
+                        index,
+                        destinationPath,
+                        cancellationToken);
+                }
+                catch (IOException exception) when (
+                    exception is not InsufficientStorageException)
+                {
+                    throw new IOException(
+                        "Não foi possível gravar uma página do PDF no cache.",
+                        exception);
+                }
             }
 
             pages.Add(new ComicPage
@@ -132,7 +148,7 @@ public class PdfReaderService : IPdfReaderService
         return pages;
     }
 
-    private static void RenderPage(
+    private void RenderPage(
         PdfRenderer renderer,
         int pageIndex,
         string destinationPath,
@@ -167,6 +183,12 @@ public class PdfReaderService : IPdfReaderService
             throw new InvalidDataException(
                 $"A página {pageIndex + 1} possui dimensões excessivas.");
         }
+
+        StorageSpacePolicy.EnsureAvailable(
+            _storageSpaceService,
+            destinationPath,
+            StorageSpacePolicy.EstimatePdfPageBytes(TargetWidth, targetHeight),
+            "Não há espaço disponível suficiente para preparar este PDF.");
 
         using var bitmap =
             AndroidBitmap.CreateBitmap(

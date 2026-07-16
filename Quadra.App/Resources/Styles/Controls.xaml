@@ -29,10 +29,12 @@
     </Style>
     <Style x:Key="FilterChipStyle" TargetType="Button">
         <Setter Property="BackgroundColor" Value="Transparent" />
+        <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource ColorTextPrimaryLight}, Dark={StaticResource ColorTextPrimaryDark}}" />
         <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource ColorOutlineLight}, Dark={StaticResource ColorOutlineDark}}" />
         <Setter Property="BorderWidth" Value="1" />
         <Setter Property="CornerRadius" Value="999" />
         <Setter Property="MinimumHeightRequest" Value="44" />
+        <Setter Property="Padding" Value="16,8" />
     </Style>
     <Style x:Key="SelectedFilterChipStyle" TargetType="Button" BasedOn="{StaticResource FilterChipStyle}">
         <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />

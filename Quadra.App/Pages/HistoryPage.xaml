@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Quadra.App.Pages.HistoryPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    BackgroundColor="{AppThemeBinding Light={StaticResource ColorBackgroundLight}, Dark={StaticResource ColorBackgroundDark}}"
+    SafeAreaEdges="Container"
+    Shell.NavBarIsVisible="False">
+    <Grid Padding="24">
+        <VerticalStackLayout MaximumWidthRequest="440" Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
+            <Image Source="icon_history.svg" WidthRequest="64" HeightRequest="64" SemanticProperties.Description="Histórico" />
+            <Label Text="Histórico" Style="{StaticResource HeadlineMobile}" HorizontalTextAlignment="Center" TextColor="{AppThemeBinding Light={StaticResource ColorTextPrimaryLight}, Dark={StaticResource ColorTextPrimaryDark}}" />
+            <Label Text="Suas leituras recentes aparecerão aqui." Style="{StaticResource SecondaryTextStyle}" HorizontalTextAlignment="Center" />
+            <Label Text="Em breve" Style="{StaticResource LabelMedium}" FontFamily="OpenSansSemibold" HorizontalTextAlignment="Center" TextColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>
