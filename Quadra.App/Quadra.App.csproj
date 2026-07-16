@@ -30,6 +30,7 @@
 		<!-- Versions -->
 		<ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
 		<ApplicationVersion>1</ApplicationVersion>
+		<PackageVersion>0.1.0</PackageVersion>
 
 		<WindowsPackageType>None</WindowsPackageType>
 
@@ -68,7 +69,7 @@
 
 		<PackageReference Include="SourceGear.sqlite3" Version="3.53.3" />
 
-		<PackageReference Include="sqlite-net-pcl" Version="1.9.172" />
+		<PackageReference Include="sqlite-net-pcl" Version="1.11.285" />
 
 		<PackageReference Include="VersOne.Epub" Version="3.3.6" />
 	</ItemGroup>
