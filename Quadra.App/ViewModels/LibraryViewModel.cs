@@ -14,6 +14,7 @@ public partial class LibraryViewModel : ObservableObject
     private readonly QuadraDatabase _database;
     private readonly CoverService _coverService;
     private readonly LibraryCleanupService _cleanupService;
+    private CancellationTokenSource? _importCancellation;
 
     public ObservableCollection<LibraryItem> Itens { get; } = [];
 
@@ -56,6 +57,9 @@ public partial class LibraryViewModel : ObservableObject
         try
         {
             EstaImportando = true;
+            _importCancellation?.Dispose();
+            _importCancellation = new CancellationTokenSource();
+            var cancellationToken = _importCancellation.Token;
 
             var tiposPermitidos = new FilePickerFileType(
                 new Dictionary<DevicePlatform, IEnumerable<string>>
@@ -94,15 +98,7 @@ public partial class LibraryViewModel : ObservableObject
                 .GetExtension(arquivo.FileName)
                 .ToLowerInvariant();
 
-            string[] extensoesPermitidas =
-            [
-                ".cbr",
-                ".cbz",
-                ".pdf",
-                ".epub"
-            ];
-
-            if (!extensoesPermitidas.Contains(extensao))
+            if (!SupportedFileFormats.IsSupported(extensao))
             {
                 await Shell.Current.DisplayAlertAsync(
                     "Arquivo não suportado",
@@ -112,10 +108,14 @@ public partial class LibraryViewModel : ObservableObject
                 return;
             }
 
-            ItemImportado = await _storageService.ImportAsync(arquivo);
+            ItemImportado = await _storageService.ImportAsync(
+                arquivo,
+                cancellationToken);
 
             ItemImportado.CoverPath =
-                await _coverService.GenerateCoverAsync(ItemImportado);
+                await _coverService.GenerateCoverAsync(
+                    ItemImportado,
+                    cancellationToken);
 
             await _database.SaveLibraryItemAsync(ItemImportado);
 
@@ -131,12 +131,14 @@ public partial class LibraryViewModel : ObservableObject
                 $"{ItemImportado.Title} foi copiado para a biblioteca do Quadra.",
                 "OK");
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException)
         {
+            await CleanupIncompleteImportAsync();
             // O usuário cancelou a operação.
         }
         catch (Exception ex)
         {
+            await CleanupIncompleteImportAsync();
             await Shell.Current.DisplayAlertAsync(
                 "Erro ao importar",
                 ex.Message,
@@ -146,6 +148,20 @@ public partial class LibraryViewModel : ObservableObject
         {
             EstaImportando = false;
         }
+    }
+
+    public void CancelImport()
+    {
+        _importCancellation?.Cancel();
+    }
+
+    private async Task CleanupIncompleteImportAsync()
+    {
+        if (ItemImportado is null || ItemImportado.Id > 0)
+            return;
+
+        await _storageService.DeleteAsync(ItemImportado);
+        ItemImportado = null;
     }
 
     [RelayCommand]
@@ -165,8 +181,7 @@ public partial class LibraryViewModel : ObservableObject
 
         try
         {
-            await _cleanupService.DeleteFilesAsync(item);
-            await _database.DeleteLibraryItemAsync(item);
+            await _cleanupService.DeleteAsync(item);
 
             Itens.Remove(item);
 

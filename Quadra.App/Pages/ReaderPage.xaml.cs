@@ -24,6 +24,13 @@ public partial class ReaderPage : ContentPage
             true);
     }
 
+    protected override async void OnDisappearing()
+    {
+        await _viewModel.FlushProgressAsync();
+        _viewModel.CancelLoading();
+        base.OnDisappearing();
+    }
+
     private void OnReaderTapped(
     object? sender,
     TappedEventArgs e)

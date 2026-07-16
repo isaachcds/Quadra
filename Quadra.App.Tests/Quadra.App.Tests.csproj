@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Quadra.App\Services\AsyncInitializationGate.cs" Link="Services\AsyncInitializationGate.cs" />
+    <Compile Include="..\Quadra.App\Services\EpubPathResolver.cs" Link="Services\EpubPathResolver.cs" />
+    <Compile Include="..\Quadra.App\Services\FileProcessingLimits.cs" Link="Services\FileProcessingLimits.cs" />
+    <Compile Include="..\Quadra.App\Services\NaturalStringComparer.cs" Link="Services\NaturalStringComparer.cs" />
+    <Compile Include="..\Quadra.App\Services\ReadingProgressCalculator.cs" Link="Services\ReadingProgressCalculator.cs" />
+    <Compile Include="..\Quadra.App\Services\SupportedFileFormats.cs" Link="Services\SupportedFileFormats.cs" />
+  </ItemGroup>
+</Project>

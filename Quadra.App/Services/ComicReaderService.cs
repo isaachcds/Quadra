@@ -71,15 +71,21 @@ public class ComicReaderService
         using var archive =
             ArchiveFactory.OpenArchive(item.FilePath);
 
+        EnsureArchiveLimits(
+            archive.Entries.Count(),
+            archive.Entries.Sum(entry => Math.Max(0, entry.Size)));
+
         var imageEntries = archive.Entries
             .Where(entry =>
                 !entry.IsDirectory &&
                 !string.IsNullOrWhiteSpace(entry.Key) &&
                 IsImage(entry.Key))
             .OrderBy(
-                entry => entry.Key,
+                entry => entry.Key!,
                 NaturalStringComparer.Instance)
             .ToList();
+
+        EnsurePageCount(imageEntries.Count);
 
         var pages = new List<ComicPage>();
 
@@ -88,9 +94,10 @@ public class ComicReaderService
             cancellationToken.ThrowIfCancellationRequested();
 
             var entry = imageEntries[index];
+            var entryKey = entry.Key!;
 
             var extension = Path
-                .GetExtension(entry.Key)
+                .GetExtension(entryKey)
                 .ToLowerInvariant();
 
             var destinationFileName =
@@ -100,28 +107,23 @@ public class ComicReaderService
                 itemCacheDirectory,
                 destinationFileName);
 
-            if (!File.Exists(destinationPath))
+            if (!IsValidCachedFile(destinationPath))
             {
-                await using var inputStream =
-                    entry.OpenEntryStream();
+                AtomicFile.DeleteIfExists(destinationPath);
+                await using var inputStream = entry.OpenEntryStream();
 
-                await using var outputStream = new FileStream(
+                await AtomicFile.WriteAsync(
                     destinationPath,
-                    FileMode.Create,
-                    FileAccess.Write,
-                    FileShare.None,
-                    bufferSize: 81920,
-                    useAsync: true);
-
-                await inputStream.CopyToAsync(
-                    outputStream,
-                    cancellationToken);
+                    outputStream => inputStream.CopyToAsync(
+                        outputStream,
+                        cancellationToken),
+                    cancellationToken: cancellationToken);
             }
 
             pages.Add(new ComicPage
             {
                 Index = index,
-                FileName = entry.Key,
+                FileName = entryKey,
                 FilePath = destinationPath
             });
         }
@@ -138,6 +140,10 @@ public class ComicReaderService
         using var archive =
             System.IO.Compression.ZipFile.OpenRead(item.FilePath);
 
+        EnsureArchiveLimits(
+            archive.Entries.Count,
+            archive.Entries.Sum(entry => Math.Max(0, entry.Length)));
+
         var imageEntries = archive.Entries
             .Where(entry =>
                 !string.IsNullOrWhiteSpace(entry.Name) &&
@@ -146,6 +152,8 @@ public class ComicReaderService
                 entry => entry.FullName,
                 NaturalStringComparer.Instance)
             .ToList();
+
+        EnsurePageCount(imageEntries.Count);
 
         var pages = new List<ComicPage>();
 
@@ -166,23 +174,17 @@ public class ComicReaderService
                 itemCacheDirectory,
                 destinationFileName);
 
-            if (!File.Exists(destinationPath))
+            if (!IsValidCachedFile(destinationPath))
             {
-                await using var inputStream =
-                    entry.Open();
+                AtomicFile.DeleteIfExists(destinationPath);
+                await using var inputStream = entry.Open();
 
-                await using var outputStream =
-                    new FileStream(
-                        destinationPath,
-                        FileMode.Create,
-                        FileAccess.Write,
-                        FileShare.None,
-                        bufferSize: 81920,
-                        useAsync: true);
-
-                await inputStream.CopyToAsync(
-                    outputStream,
-                    cancellationToken);
+                await AtomicFile.WriteAsync(
+                    destinationPath,
+                    outputStream => inputStream.CopyToAsync(
+                        outputStream,
+                        cancellationToken),
+                    cancellationToken: cancellationToken);
             }
 
             pages.Add(new ComicPage
@@ -248,5 +250,25 @@ public class ComicReaderService
             .ToLowerInvariant();
 
         return ImageExtensions.Contains(extension);
+    }
+
+    private static void EnsurePageCount(int pageCount)
+    {
+        if (pageCount > FileProcessingLimits.MaximumPages)
+            throw new InvalidDataException("A obra possui páginas demais para ser processada.");
+    }
+
+    private static void EnsureArchiveLimits(int entryCount, long expandedBytes)
+    {
+        if (entryCount > FileProcessingLimits.MaximumArchiveEntries)
+            throw new InvalidDataException("O arquivo compactado possui entradas demais.");
+
+        if (expandedBytes > FileProcessingLimits.MaximumExpandedBytes)
+            throw new InvalidDataException("O conteúdo expandido excede o limite seguro.");
+    }
+
+    private static bool IsValidCachedFile(string path)
+    {
+        return File.Exists(path) && new FileInfo(path).Length > 0;
     }
 }

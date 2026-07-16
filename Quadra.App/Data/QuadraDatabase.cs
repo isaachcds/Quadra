@@ -6,7 +6,8 @@ namespace Quadra.App.Data;
 public class QuadraDatabase
 {
     private readonly SQLiteAsyncConnection _connection;
-    private bool _initialized;
+    private readonly Quadra.App.Services.AsyncInitializationGate
+        _initializationGate = new();
 
     public QuadraDatabase()
     {
@@ -26,12 +27,8 @@ public class QuadraDatabase
 
     private async Task InitializeAsync()
     {
-        if (_initialized)
-            return;
-
-        await _connection.CreateTableAsync<LibraryItem>();
-
-        _initialized = true;
+        await _initializationGate.EnsureInitializedAsync(
+            () => _connection.CreateTableAsync<LibraryItem>());
     }
 
     public async Task<List<LibraryItem>> GetLibraryItemsAsync()

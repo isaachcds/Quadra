@@ -6,6 +6,7 @@ using Quadra.App.ViewModels;
 
 #if ANDROID
 using Quadra.App.Platforms.Android.Services;
+using Microsoft.Maui.Handlers;
 #endif
 
 namespace Quadra.App;
@@ -15,6 +16,15 @@ public static class MauiProgram
     public static MauiApp CreateMauiApp()
     {
         var builder = MauiApp.CreateBuilder();
+
+#if ANDROID
+        WebViewHandler.Mapper.AppendToMapping(
+            "QuadraDisableEpubJavaScript",
+            (handler, _) =>
+            {
+                handler.PlatformView.Settings.JavaScriptEnabled = false;
+            });
+#endif
 
         builder
             .UseMauiApp<App>()

@@ -9,4 +9,6 @@ public interface IEpubReaderService
         CancellationToken cancellationToken = default);
 
     void ClearCache(LibraryItem item);
+
+    string GetContentRoot(LibraryItem item);
 }

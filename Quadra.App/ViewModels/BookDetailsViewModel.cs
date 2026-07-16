@@ -10,8 +10,9 @@ namespace Quadra.App.ViewModels;
 public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
 {
     private readonly QuadraDatabase _database;
-    private readonly LibraryStorageService _storageService;
+    private readonly LibraryCleanupService _cleanupService;
     private readonly ComicReaderService _comicReaderService;
+    private CancellationTokenSource? _preparationCancellation;
 
     [ObservableProperty]
     private LibraryItem? item;
@@ -36,11 +37,11 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
 
     public BookDetailsViewModel(
     QuadraDatabase database,
-    LibraryStorageService storageService,
+    LibraryCleanupService cleanupService,
     ComicReaderService comicReaderService)
     {
         _database = database;
-        _storageService = storageService;
+        _cleanupService = cleanupService;
         _comicReaderService = comicReaderService;
     }
 
@@ -91,9 +92,13 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
         {
             EstaPreparandoLeitura = true;
             TextoPreparacao = "Preparando páginas...";
+            _preparationCancellation?.Dispose();
+            _preparationCancellation = new CancellationTokenSource();
 
             var paginas =
-                await _comicReaderService.LoadPagesAsync(Item);
+                await _comicReaderService.LoadPagesAsync(
+                    Item,
+                    _preparationCancellation.Token);
 
             if (paginas.Count == 0)
             {
@@ -126,6 +131,10 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
                 nameof(ReaderPage),
                 parametros);
         }
+        catch (OperationCanceledException)
+        {
+            // A tela deixou de precisar desta preparação.
+        }
         catch (Exception ex)
         {
             await Shell.Current.DisplayAlertAsync(
@@ -157,8 +166,7 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
 
         try
         {
-            await _database.DeleteLibraryItemAsync(Item);
-            await _storageService.DeleteAsync(Item);
+            await _cleanupService.DeleteAsync(Item);
 
             await Shell.Current.GoToAsync("..");
         }
@@ -173,44 +181,29 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
 
     private void AtualizarProgresso()
     {
-        if (Item is null || Item.TotalPages <= 0)
-        {
-            PossuiPaginas = false;
-            PercentualProgresso = 0;
-            TextoProgresso = "Ainda não iniciado";
-            TextoBotaoLeitura = "Começar leitura";
+        if (Item is null)
             return;
-        }
 
-        PossuiPaginas = true;
+        var unit = Item.Format.Equals(
+            "EPUB",
+            StringComparison.OrdinalIgnoreCase)
+            ? ReadingProgressUnit.Chapter
+            : ReadingProgressUnit.Page;
 
-        var paginaExibida = Math.Clamp(
-            Item.CurrentPage + 1,
-            1,
-            Item.TotalPages);
+        var progress = ReadingProgressCalculator.Calculate(
+            Item.CurrentPage,
+            Item.TotalPages,
+            unit);
 
-        var leituraConcluida =
-            Item.CurrentPage >= Item.TotalPages - 1;
+        PossuiPaginas = Item.TotalPages > 0;
+        PercentualProgresso = progress.Percentage;
+        TextoProgresso = progress.Text;
+        TextoBotaoLeitura = progress.ButtonText;
+    }
 
-        PercentualProgresso = Math.Clamp(
-            (double)paginaExibida / Item.TotalPages,
-            0,
-            1);
-
-        if (leituraConcluida)
-        {
-            TextoProgresso = "Leitura concluída";
-            TextoBotaoLeitura = "Ler novamente";
-            return;
-        }
-
-        TextoProgresso =
-            $"Página {paginaExibida} de {Item.TotalPages}";
-
-        TextoBotaoLeitura =
-            Item.CurrentPage > 0
-                ? "Continuar leitura"
-                : "Começar leitura";
+    public void CancelPreparation()
+    {
+        _preparationCancellation?.Cancel();
     }
 
     [RelayCommand]

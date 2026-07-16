@@ -7,24 +7,30 @@ public class LibraryCleanupService
     private readonly LibraryStorageService _libraryStorageService;
     private readonly ComicReaderService _comicReaderService;
     private readonly IEpubReaderService _epubReaderService;
+    private readonly Data.QuadraDatabase _database;
 
     public LibraryCleanupService(
         LibraryStorageService libraryStorageService,
         ComicReaderService comicReaderService,
-        IEpubReaderService epubReaderService)
+        IEpubReaderService epubReaderService,
+        Data.QuadraDatabase database)
     {
         _libraryStorageService = libraryStorageService;
         _comicReaderService = comicReaderService;
         _epubReaderService = epubReaderService;
+        _database = database;
     }
 
-    public async Task DeleteFilesAsync(LibraryItem item)
+    // Ordem: caches, arquivos persistentes e registro por último. Se uma etapa
+    // inesperada falhar, o registro permanece para que a exclusão possa ser repetida.
+    public async Task DeleteAsync(LibraryItem item)
     {
         ArgumentNullException.ThrowIfNull(item);
 
         DeleteReaderCache(item);
 
         await _libraryStorageService.DeleteAsync(item);
+        await _database.DeleteLibraryItemAsync(item);
     }
 
     private void DeleteReaderCache(LibraryItem item)

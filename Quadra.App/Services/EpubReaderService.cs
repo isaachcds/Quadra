@@ -57,14 +57,9 @@ public class EpubReaderService : IEpubReaderService
             var contentFile =
                 book.ReadingOrder[index];
 
-            var relativePath =
-                NormalizeRelativePath(
-                    contentFile.FilePath);
-
-            var localFilePath =
-                Path.Combine(
-                    itemCacheDirectory,
-                    relativePath);
+            var localFilePath = EpubPathResolver.ResolveInsideRoot(
+                itemCacheDirectory,
+                contentFile.FilePath);
 
             if (!File.Exists(localFilePath))
                 continue;
@@ -109,6 +104,12 @@ public class EpubReaderService : IEpubReaderService
         }
     }
 
+    public string GetContentRoot(LibraryItem item)
+    {
+        ArgumentNullException.ThrowIfNull(item);
+        return GetItemCacheDirectory(item);
+    }
+
     private static async Task ExtractBookAsync(
         string epubFilePath,
         string destinationDirectory,
@@ -118,7 +119,8 @@ public class EpubReaderService : IEpubReaderService
             destinationDirectory,
             ".extraction-complete");
 
-        if (File.Exists(completedMarker))
+        if (File.Exists(completedMarker) &&
+            new FileInfo(completedMarker).Length > 0)
             return;
 
         if (Directory.Exists(destinationDirectory))
@@ -131,22 +133,90 @@ public class EpubReaderService : IEpubReaderService
         Directory.CreateDirectory(
             destinationDirectory);
 
-        await Task.Run(
-            () =>
+        try
+        {
+            using var archive = ZipFile.OpenRead(epubFilePath);
+
+            if (archive.Entries.Count > FileProcessingLimits.MaximumArchiveEntries)
+                throw new InvalidDataException("O EPUB possui entradas demais.");
+
+            long expandedBytes = 0;
+
+            foreach (var entry in archive.Entries)
             {
                 cancellationToken.ThrowIfCancellationRequested();
+                expandedBytes = checked(expandedBytes + entry.Length);
 
-                ZipFile.ExtractToDirectory(
-                    epubFilePath,
+                if (expandedBytes > FileProcessingLimits.MaximumExpandedBytes)
+                    throw new InvalidDataException("O EPUB expandido é muito grande.");
+
+                var destinationPath = EpubPathResolver.ResolveInsideRoot(
                     destinationDirectory,
-                    overwriteFiles: true);
-            },
-            cancellationToken);
+                    entry.FullName);
 
-        await File.WriteAllTextAsync(
-            completedMarker,
-            DateTime.UtcNow.ToString("O"),
-            cancellationToken);
+                if (string.IsNullOrEmpty(entry.Name))
+                {
+                    Directory.CreateDirectory(destinationPath);
+                    continue;
+                }
+
+                await using var inputStream = entry.Open();
+
+                await AtomicFile.WriteAsync(
+                    destinationPath,
+                    outputStream => inputStream.CopyToAsync(
+                        outputStream,
+                        cancellationToken),
+                    cancellationToken: cancellationToken);
+
+                if (Path.GetExtension(destinationPath).Equals(
+                        ".css",
+                        StringComparison.OrdinalIgnoreCase))
+                {
+                    var css = await File.ReadAllTextAsync(
+                        destinationPath,
+                        cancellationToken);
+                    var sanitizedCss = EpubContentSanitizer.SanitizeCssReferences(
+                        css,
+                        destinationDirectory,
+                        Path.GetDirectoryName(destinationPath) ?? destinationDirectory);
+
+                    if (!string.Equals(css, sanitizedCss, StringComparison.Ordinal))
+                    {
+                        await AtomicFile.WriteAsync(
+                            destinationPath,
+                            async outputStream =>
+                            {
+                                await using var writer = new StreamWriter(
+                                    outputStream,
+                                    leaveOpen: true);
+                                await writer.WriteAsync(sanitizedCss);
+                                await writer.FlushAsync(cancellationToken);
+                            },
+                            cancellationToken: cancellationToken);
+                    }
+                }
+            }
+
+            await AtomicFile.WriteAsync(
+                completedMarker,
+                async outputStream =>
+                {
+                    await using var writer = new StreamWriter(
+                        outputStream,
+                        leaveOpen: true);
+                    await writer.WriteAsync(DateTime.UtcNow.ToString("O"));
+                    await writer.FlushAsync(cancellationToken);
+                },
+                cancellationToken: cancellationToken);
+        }
+        catch
+        {
+            if (Directory.Exists(destinationDirectory))
+                Directory.Delete(destinationDirectory, recursive: true);
+
+            throw;
+        }
     }
 
     private string GetItemCacheDirectory(
@@ -267,20 +337,4 @@ public class EpubReaderService : IEpubReaderService
                 StringComparison.OrdinalIgnoreCase));
     }
 
-    private static string NormalizeRelativePath(
-        string path)
-    {
-        var decodedPath =
-            Uri.UnescapeDataString(path);
-
-        return decodedPath
-            .Replace(
-                '/',
-                Path.DirectorySeparatorChar)
-            .Replace(
-                '\\',
-                Path.DirectorySeparatorChar)
-            .TrimStart(
-                Path.DirectorySeparatorChar);
-    }
 }

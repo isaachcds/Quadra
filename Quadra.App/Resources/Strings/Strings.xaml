@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <x:String x:Key="StringLibrary">Biblioteca</x:String>
+    <x:String x:Key="StringCollections">Coleções</x:String>
+    <x:String x:Key="StringHistory">Histórico</x:String>
+    <x:String x:Key="StringSettings">Configurações</x:String>
+    <x:String x:Key="StringImportFile">Importar arquivo</x:String>
+    <x:String x:Key="StringContinueReading">Continuar leitura</x:String>
+    <x:String x:Key="StringStartReading">Começar leitura</x:String>
+    <x:String x:Key="StringReadAgain">Ler novamente</x:String>
+    <x:String x:Key="StringNoItemsFound">Nenhum item encontrado</x:String>
+    <x:String x:Key="StringSupportedFormats">Formatos suportados</x:String>
+    <x:String x:Key="StringFormatCbr">CBR</x:String>
+    <x:String x:Key="StringFormatCbz">CBZ</x:String>
+    <x:String x:Key="StringFormatPdf">PDF</x:String>
+    <x:String x:Key="StringFormatEpub">EPUB</x:String>
+</ResourceDictionary>

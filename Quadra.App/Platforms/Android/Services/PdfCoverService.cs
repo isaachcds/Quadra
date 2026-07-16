@@ -78,7 +78,7 @@ public class PdfCoverService : IPdfCoverService
             AndroidBitmap.CreateBitmap(
                 TargetWidth,
                 targetHeight,
-                AndroidBitmap.Config.Argb8888);
+                AndroidBitmap.Config.Argb8888!);
 
         if (bitmap is null)
             return null;
@@ -103,22 +103,20 @@ public class PdfCoverService : IPdfCoverService
             Directory.CreateDirectory(directory);
         }
 
-        using var outputStream =
-            new FileStream(
-                destinationPath,
-                FileMode.Create,
-                FileAccess.Write,
-                FileShare.None);
-
-        var saved = bitmap.Compress(
-            AndroidBitmap.CompressFormat.Png,
-            100,
-            outputStream);
-
-        if (!saved)
-            return null;
-
-        outputStream.Flush();
+        AtomicFile.Write(
+            destinationPath,
+            outputStream =>
+            {
+                if (!bitmap.Compress(
+                        AndroidBitmap.CompressFormat.Png!,
+                        100,
+                        outputStream))
+                {
+                    throw new InvalidOperationException(
+                        "Não foi possível salvar a capa do PDF.");
+                }
+            },
+            cancellationToken);
 
         return destinationPath;
     }

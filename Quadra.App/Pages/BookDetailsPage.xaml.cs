@@ -25,8 +25,14 @@ public partial class BookDetailsPage : ContentPage
         }
     }
 
+    protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
+    {
+        _viewModel.CancelPreparation();
+        base.OnNavigatedFrom(args);
+    }
+
     private async void OnBackClicked(
-        object sender,
+        object? sender,
         EventArgs e)
     {
         await Shell.Current.GoToAsync("..");

@@ -11,6 +11,10 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
 {
     private readonly ComicReaderService _comicReaderService;
     private readonly QuadraDatabase _database;
+    private readonly SemaphoreSlim _progressLock = new(1, 1);
+    private CancellationTokenSource? _loadCancellation;
+    private CancellationTokenSource? _progressCancellation;
+    private int _progressVersion;
 
     public ObservableCollection<ComicPage> Paginas { get; } = [];
 
@@ -47,11 +51,14 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
             return;
 
         Item = libraryItem;
+        _loadCancellation?.Cancel();
+        _loadCancellation?.Dispose();
+        _loadCancellation = new CancellationTokenSource();
 
-        await CarregarPaginasAsync();
+        await CarregarPaginasAsync(_loadCancellation.Token);
     }
 
-    private async Task CarregarPaginasAsync()
+    private async Task CarregarPaginasAsync(CancellationToken cancellationToken)
     {
         if (Item is null)
             return;
@@ -61,7 +68,9 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
             EstaCarregando = true;
 
             var paginas =
-                await _comicReaderService.LoadPagesAsync(Item);
+                await _comicReaderService.LoadPagesAsync(Item, cancellationToken);
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             Paginas.Clear();
 
@@ -74,6 +83,10 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
                 Math.Max(0, Paginas.Count - 1));
 
             AtualizarTextoPagina();
+        }
+        catch (OperationCanceledException)
+        {
+            // A página deixou de precisar desta preparação.
         }
         catch (Exception ex)
         {
@@ -94,19 +107,82 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
     {
         AtualizarTextoPagina();
 
-        _ = SalvarProgressoAsync(value);
+        EnfileirarSalvamento(value);
     }
 
-    private async Task SalvarProgressoAsync(int pagina)
+    private void EnfileirarSalvamento(int pagina)
     {
-        if (Item is null || Paginas.Count == 0)
-            return;
+        _progressCancellation?.Cancel();
+        _progressCancellation?.Dispose();
+        _progressCancellation = new CancellationTokenSource();
 
-        Item.CurrentPage = pagina;
-        Item.TotalPages = Paginas.Count;
-        Item.LastReadAt = DateTime.Now;
+        var version = Interlocked.Increment(ref _progressVersion);
+        _ = SalvarProgressoSeguroAsync(
+            pagina,
+            version,
+            debounce: true,
+            _progressCancellation.Token);
+    }
 
-        await _database.SaveLibraryItemAsync(Item);
+    private async Task SalvarProgressoSeguroAsync(
+        int pagina,
+        int version,
+        bool debounce,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (debounce)
+                await Task.Delay(250, cancellationToken);
+
+            await _progressLock.WaitAsync(cancellationToken);
+
+            try
+            {
+                if (version != Volatile.Read(ref _progressVersion) ||
+                    Item is null ||
+                    Paginas.Count == 0)
+                {
+                    return;
+                }
+
+                Item.CurrentPage = pagina;
+                Item.TotalPages = Paginas.Count;
+                Item.LastReadAt = DateTime.Now;
+
+                await _database.SaveLibraryItemAsync(Item);
+            }
+            finally
+            {
+                _progressLock.Release();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Uma posição mais nova substituiu esta.
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(
+                $"Não foi possível salvar o progresso: {ex}");
+        }
+    }
+
+    public async Task FlushProgressAsync()
+    {
+        _progressCancellation?.Cancel();
+        var version = Interlocked.Increment(ref _progressVersion);
+
+        await SalvarProgressoSeguroAsync(
+            PaginaAtual,
+            version,
+            debounce: false,
+            CancellationToken.None);
+    }
+
+    public void CancelLoading()
+    {
+        _loadCancellation?.Cancel();
     }
 
     private void AtualizarTextoPagina()

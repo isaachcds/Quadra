@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="Quadra.App/Quadra.App.csproj" />
+  <Project Path="Quadra.App.Tests/Quadra.App.Tests.csproj" />
 </Solution>

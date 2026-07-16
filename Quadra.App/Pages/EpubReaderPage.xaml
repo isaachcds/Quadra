@@ -70,6 +70,7 @@
             <WebView
                 x:Name="EpubWebView"
                 Source="{Binding ConteudoCapitulo}"
+                Navigating="OnWebViewNavigating"
                 BackgroundColor="#FAF8F3" />
 
             <!-- Área central para alternar os controles -->

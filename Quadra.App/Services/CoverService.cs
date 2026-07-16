@@ -135,7 +135,7 @@ public class CoverService
             return null;
 
         var extension = NormalizeCoverExtension(
-            Path.GetExtension(firstImage.Key));
+            Path.GetExtension(firstImage.Key!));
 
         var coverPath = CreateCoverPath(
             item,
@@ -491,16 +491,11 @@ public class CoverService
         string coverPath,
         CancellationToken cancellationToken)
     {
-        await using var outputStream = new FileStream(
+        await AtomicFile.WriteAsync(
             coverPath,
-            FileMode.Create,
-            FileAccess.Write,
-            FileShare.None,
-            bufferSize: 81920,
-            useAsync: true);
-
-        await inputStream.CopyToAsync(
-            outputStream,
-            cancellationToken);
+            outputStream => inputStream.CopyToAsync(
+                outputStream,
+                cancellationToken),
+            cancellationToken: cancellationToken);
     }
 }

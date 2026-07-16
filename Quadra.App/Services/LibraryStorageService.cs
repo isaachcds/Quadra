@@ -26,15 +26,7 @@ public class LibraryStorageService
             .GetExtension(file.FileName)
             .ToLowerInvariant();
 
-        string[] allowedExtensions =
-        [
-            ".cbr",
-            ".cbz",
-            ".pdf",
-            ".epub"
-        ];
-
-        if (!allowedExtensions.Contains(extension))
+        if (!SupportedFileFormats.IsSupported(extension))
         {
             throw new InvalidOperationException(
                 "O formato do arquivo não é suportado.");
@@ -46,18 +38,43 @@ public class LibraryStorageService
             _libraryDirectory,
             storedFileName);
 
+        FileProcessingLimits.EnsureFreeSpace(destinationPath);
+
         await using var inputStream = await file.OpenReadAsync();
 
-        await using var outputStream = new FileStream(
+        await AtomicFile.WriteAsync(
             destinationPath,
-            FileMode.CreateNew,
-            FileAccess.Write,
-            FileShare.None,
-            bufferSize: 81920,
-            useAsync: true);
+            async outputStream =>
+            {
+                var buffer = new byte[81920];
+                long totalBytes = 0;
 
-        await inputStream.CopyToAsync(
-            outputStream,
+                while (true)
+                {
+                    var read = await inputStream.ReadAsync(
+                        buffer,
+                        cancellationToken);
+
+                    if (read == 0)
+                        break;
+
+                    totalBytes += read;
+
+                    if (totalBytes > FileProcessingLimits.MaximumImportBytes)
+                    {
+                        throw new InvalidDataException(
+                            "O arquivo é maior que o limite permitido.");
+                    }
+
+                    await outputStream.WriteAsync(
+                        buffer.AsMemory(0, read),
+                        cancellationToken);
+                }
+            },
+            partialPath => FileValidationService.ValidateAsync(
+                partialPath,
+                extension,
+                cancellationToken),
             cancellationToken);
 
         var title = Path.GetFileNameWithoutExtension(file.FileName);
@@ -68,7 +85,7 @@ public class LibraryStorageService
             OriginalFileName = file.FileName,
             StoredFileName = storedFileName,
             FilePath = destinationPath,
-            Format = extension.TrimStart('.').ToUpperInvariant(),
+            Format = SupportedFileFormats.NormalizeFormat(extension),
             CurrentPage = 0,
             TotalPages = 0,
             ImportedAt = DateTime.Now

@@ -12,6 +12,9 @@ public partial class EpubReaderViewModel
 {
     private readonly IEpubReaderService _epubReaderService;
     private readonly QuadraDatabase _database;
+    private CancellationTokenSource? _loadCancellation;
+
+    public string? ContentRoot { get; private set; }
 
     public ObservableCollection<EpubChapter> Capitulos { get; } = [];
 
@@ -54,11 +57,15 @@ public partial class EpubReaderViewModel
             return;
 
         Item = libraryItem;
+        ContentRoot = _epubReaderService.GetContentRoot(libraryItem);
+        _loadCancellation?.Cancel();
+        _loadCancellation?.Dispose();
+        _loadCancellation = new CancellationTokenSource();
 
-        await CarregarLivroAsync();
+        await CarregarLivroAsync(_loadCancellation.Token);
     }
 
-    private async Task CarregarLivroAsync()
+    private async Task CarregarLivroAsync(CancellationToken cancellationToken)
     {
         if (Item is null)
             return;
@@ -68,7 +75,11 @@ public partial class EpubReaderViewModel
             EstaCarregando = true;
 
             var capitulos =
-                await _epubReaderService.LoadChaptersAsync(Item);
+                await _epubReaderService.LoadChaptersAsync(
+                    Item,
+                    cancellationToken);
+
+            cancellationToken.ThrowIfCancellationRequested();
 
             Capitulos.Clear();
 
@@ -80,7 +91,11 @@ public partial class EpubReaderViewModel
                 0,
                 Math.Max(0, Capitulos.Count - 1));
 
-            await CarregarCapituloAtualAsync();
+            await CarregarCapituloAtualAsync(cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            // A página deixou de precisar deste carregamento.
         }
         catch (Exception ex)
         {
@@ -97,7 +112,8 @@ public partial class EpubReaderViewModel
         }
     }
 
-    private async Task CarregarCapituloAtualAsync()
+    private async Task CarregarCapituloAtualAsync(
+        CancellationToken cancellationToken = default)
     {
         if (Capitulos.Count == 0)
             return;
@@ -117,8 +133,12 @@ public partial class EpubReaderViewModel
         }
 
         var html = await File.ReadAllTextAsync(
-            capitulo.LocalFilePath);
+            capitulo.LocalFilePath,
+            cancellationToken);
 
+        html = SanitizarReferenciasLocais(
+            html,
+            capitulo.LocalFilePath);
         html = AplicarEstiloLeitura(html);
 
         var directory =
@@ -135,6 +155,67 @@ public partial class EpubReaderViewModel
         AtualizarTextoCapitulo();
 
         await SalvarProgressoAsync();
+    }
+
+    private string SanitizarReferenciasLocais(
+        string html,
+        string chapterPath)
+    {
+        if (string.IsNullOrWhiteSpace(ContentRoot))
+            return html;
+
+        var chapterDirectory = Path.GetDirectoryName(chapterPath) ?? ContentRoot;
+
+        var sanitized = System.Text.RegularExpressions.Regex.Replace(
+            html,
+            "(?<attribute>src|href)\\s*=\\s*(?<quote>[\\\"'])(?<value>.*?)(\\k<quote>)",
+            match =>
+            {
+                var value = match.Groups["value"].Value;
+
+                if (string.IsNullOrWhiteSpace(value) || value.StartsWith('#'))
+                    return match.Value;
+
+                if (EpubContentSanitizer.IsSafeReference(
+                        ContentRoot,
+                        chapterDirectory,
+                        value))
+                {
+                    return match.Value;
+                }
+
+                return $"{match.Groups["attribute"].Value}=\"#\"";
+            },
+            System.Text.RegularExpressions.RegexOptions.IgnoreCase |
+            System.Text.RegularExpressions.RegexOptions.Singleline);
+
+        return EpubContentSanitizer.SanitizeCssReferences(
+            sanitized,
+            ContentRoot,
+            chapterDirectory);
+    }
+
+    public bool IsLocalNavigationAllowed(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url) || url.StartsWith('#'))
+            return true;
+
+        if (url.StartsWith("about:blank", StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (string.IsNullOrWhiteSpace(ContentRoot) ||
+            !Uri.TryCreate(url, UriKind.Absolute, out var uri) ||
+            !uri.IsFile)
+        {
+            return false;
+        }
+
+        return EpubPathResolver.IsInsideRoot(ContentRoot, uri.LocalPath);
+    }
+
+    public void CancelOperations()
+    {
+        _loadCancellation?.Cancel();
     }
 
     private void AtualizarTextoCapitulo()

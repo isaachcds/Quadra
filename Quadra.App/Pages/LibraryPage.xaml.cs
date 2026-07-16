@@ -21,4 +21,10 @@ public partial class LibraryPage : ContentPage
         if (_viewModel.CarregarBibliotecaCommand.CanExecute(null))
             _viewModel.CarregarBibliotecaCommand.Execute(null);
     }
+
+    protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
+    {
+        _viewModel.CancelImport();
+        base.OnNavigatedFrom(args);
+    }
 }

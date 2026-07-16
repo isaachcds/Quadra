@@ -12,7 +12,7 @@ namespace Quadra.App.Platforms.Android.Services;
 
 public class PdfReaderService : IPdfReaderService
 {
-    private const int TargetWidth = 1400;
+    private const int TargetWidth = FileProcessingLimits.PdfTargetWidth;
 
     private readonly string _pdfCacheDirectory;
 
@@ -69,6 +69,8 @@ public class PdfReaderService : IPdfReaderService
         Directory.CreateDirectory(
             itemCacheDirectory);
 
+        FileProcessingLimits.EnsureFreeSpace(itemCacheDirectory);
+
         using var javaFile =
             new Java.IO.File(item.FilePath);
 
@@ -90,6 +92,9 @@ public class PdfReaderService : IPdfReaderService
         var pages = new List<ComicPage>(
             renderer.PageCount);
 
+        if (renderer.PageCount > FileProcessingLimits.MaximumPages)
+            throw new InvalidDataException("O PDF possui páginas demais para ser processado.");
+
         for (var index = 0;
              index < renderer.PageCount;
              index++)
@@ -105,8 +110,10 @@ public class PdfReaderService : IPdfReaderService
                     itemCacheDirectory,
                     fileName);
 
-            if (!SystemFile.Exists(destinationPath))
+            if (!SystemFile.Exists(destinationPath) ||
+                new FileInfo(destinationPath).Length <= 0)
             {
+                AtomicFile.DeleteIfExists(destinationPath);
                 RenderPage(
                     renderer,
                     index,
@@ -153,11 +160,19 @@ public class PdfReaderService : IPdfReaderService
             (int)Math.Round(
                 page.Height * scale));
 
+        if (targetHeight > FileProcessingLimits.MaximumPdfBitmapHeight ||
+            (long)TargetWidth * targetHeight >
+            FileProcessingLimits.MaximumPdfBitmapPixels)
+        {
+            throw new InvalidDataException(
+                $"A página {pageIndex + 1} possui dimensões excessivas.");
+        }
+
         using var bitmap =
             AndroidBitmap.CreateBitmap(
                 TargetWidth,
                 targetHeight,
-                AndroidBitmap.Config.Argb8888);
+                AndroidBitmap.Config.Argb8888!);
 
         if (bitmap is null)
         {
@@ -177,25 +192,22 @@ public class PdfReaderService : IPdfReaderService
         cancellationToken
             .ThrowIfCancellationRequested();
 
-        using var outputStream =
-            new FileStream(
-                destinationPath,
-                FileMode.Create,
-                FileAccess.Write,
-                FileShare.None);
+        AtomicFile.Write(
+            destinationPath,
+            outputStream =>
+            {
+                var saved = bitmap.Compress(
+                    AndroidBitmap.CompressFormat.Png!,
+                    100,
+                    outputStream);
 
-        var saved = bitmap.Compress(
-            AndroidBitmap.CompressFormat.Png,
-            100,
-            outputStream);
-
-        if (!saved)
-        {
-            throw new InvalidOperationException(
-                $"Não foi possível salvar a página {pageIndex + 1}.");
-        }
-
-        outputStream.Flush();
+                if (!saved)
+                {
+                    throw new InvalidOperationException(
+                        $"Não foi possível salvar a página {pageIndex + 1}.");
+                }
+            },
+            cancellationToken);
     }
 
     private string GetItemCacheDirectory(
