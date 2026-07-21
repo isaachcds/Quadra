@@ -17,4 +17,18 @@
     <x:String x:Key="StringFormatCbz">CBZ</x:String>
     <x:String x:Key="StringFormatPdf">PDF</x:String>
     <x:String x:Key="StringFormatEpub">EPUB</x:String>
+    <x:String x:Key="StringDetails">Detalhes</x:String>
+    <x:String x:Key="StringCurrentReading">Leitura atual</x:String>
+    <x:String x:Key="StringAboutFile">Sobre o arquivo</x:String>
+    <x:String x:Key="StringOriginalName">Nome original</x:String>
+    <x:String x:Key="StringFormat">Formato</x:String>
+    <x:String x:Key="StringImportedAt">Importado em</x:String>
+    <x:String x:Key="StringTotalContent">Conteúdo</x:String>
+    <x:String x:Key="StringLastRead">Última leitura</x:String>
+    <x:String x:Key="StringFileSize">Tamanho</x:String>
+    <x:String x:Key="StringDeleteFromLibrary">Excluir da biblioteca</x:String>
+    <x:String x:Key="StringMissingInternalFile">O arquivo interno desta obra não foi encontrado.</x:String>
+    <x:String x:Key="StringMissingInternalFileHelp">Você pode voltar para a Biblioteca ou excluir este registro. O arquivo original externo não será alterado.</x:String>
+    <x:String x:Key="StringBackToLibrary">Voltar para a Biblioteca</x:String>
+    <x:String x:Key="StringTryAgain">Tentar novamente</x:String>
 </ResourceDictionary>
