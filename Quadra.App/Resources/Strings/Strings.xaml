@@ -31,4 +31,26 @@
     <x:String x:Key="StringMissingInternalFileHelp">Você pode voltar para a Biblioteca ou excluir este registro. O arquivo original externo não será alterado.</x:String>
     <x:String x:Key="StringBackToLibrary">Voltar para a Biblioteca</x:String>
     <x:String x:Key="StringTryAgain">Tentar novamente</x:String>
+    <x:String x:Key="StringSearchLibrary">Pesquisar na biblioteca</x:String>
+    <x:String x:Key="StringClearSearch">Limpar pesquisa</x:String>
+    <x:String x:Key="StringCloseSearch">Fechar pesquisa</x:String>
+    <x:String x:Key="StringFilters">Filtros</x:String>
+    <x:String x:Key="StringAll">Todos</x:String>
+    <x:String x:Key="StringComics">CBR/CBZ</x:String>
+    <x:String x:Key="StringReadingStatus">Estado</x:String>
+    <x:String x:Key="StringNotStarted">Não iniciado</x:String>
+    <x:String x:Key="StringInProgress">Em andamento</x:String>
+    <x:String x:Key="StringCompleted">Concluído</x:String>
+    <x:String x:Key="StringSortBy">Ordenar por</x:String>
+    <x:String x:Key="StringRecentlyImported">Importados recentemente</x:String>
+    <x:String x:Key="StringLastReadSort">Última leitura</x:String>
+    <x:String x:Key="StringTitleAscending">Título A–Z</x:String>
+    <x:String x:Key="StringTitleDescending">Título Z–A</x:String>
+    <x:String x:Key="StringProgressAscending">Menor progresso</x:String>
+    <x:String x:Key="StringProgressDescending">Maior progresso</x:String>
+    <x:String x:Key="StringClearFilters">Limpar filtros</x:String>
+    <x:String x:Key="StringApplyFilters">Aplicar filtros</x:String>
+    <x:String x:Key="StringNoBooksFound">Nenhuma obra encontrada</x:String>
+    <x:String x:Key="StringChangeSearchOrFilters">Tente alterar a pesquisa ou os filtros.</x:String>
+    <x:String x:Key="StringShowAll">Mostrar todos</x:String>
 </ResourceDictionary>

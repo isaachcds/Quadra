@@ -25,6 +25,16 @@ public partial class LibraryPage : ContentPage
     protected override void OnNavigatedFrom(NavigatedFromEventArgs args)
     {
         _viewModel.CancelImport();
+        _viewModel.CancelPendingSearch();
         base.OnNavigatedFrom(args);
+    }
+
+    private async void OnSearchButtonClicked(object? sender, EventArgs e)
+    {
+        if (_viewModel.AbrirBuscaCommand.CanExecute(null))
+            _viewModel.AbrirBuscaCommand.Execute(null);
+
+        await Task.Delay(50);
+        SearchEntry.Focus();
     }
 }

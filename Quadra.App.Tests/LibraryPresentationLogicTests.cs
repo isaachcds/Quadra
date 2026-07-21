@@ -88,7 +88,10 @@ public sealed class LibraryPresentationLogicTests
         double percentage,
         string text)
     {
-        var result = LibraryPresentationLogic.CalculateProgress(current, total);
+        var lastRead = state == ReadingProgressState.NotStarted
+            ? (DateTime?)null
+            : new DateTime(2026, 1, 1);
+        var result = LibraryPresentationLogic.CalculateProgress(current, total, lastRead);
 
         Assert.Equal(state, result.State);
         Assert.Equal(percentage, result.Percentage);

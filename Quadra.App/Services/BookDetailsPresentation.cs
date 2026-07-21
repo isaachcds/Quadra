@@ -40,7 +40,12 @@ public static class BookDetailsPresentation
         int totalPositions,
         bool hasBeenRead)
     {
-        if (!hasBeenRead || totalPositions <= 0)
+        var state = LibraryPresentationLogic.GetReadingStatus(
+            currentPosition,
+            totalPositions,
+            hasBeenRead ? DateTime.MinValue : null);
+
+        if (state == ReadingProgressState.NotStarted)
         {
             return new BookDetailsProgress(
                 ReadingProgressState.NotStarted,
@@ -55,7 +60,7 @@ public static class BookDetailsPresentation
             totalPositions,
             GetProgressUnit(format));
 
-        var status = progress.State == ReadingProgressState.Completed
+        var status = state == ReadingProgressState.Completed
             ? "Concluído"
             : "Em andamento";
 

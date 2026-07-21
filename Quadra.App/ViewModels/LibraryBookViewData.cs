@@ -10,7 +10,8 @@ public sealed class LibraryBookViewData
         Item = item;
         Progress = LibraryPresentationLogic.CalculateProgress(
             item.CurrentPage,
-            item.TotalPages);
+            item.TotalPages,
+            item.LastReadAt);
     }
 
     public LibraryItem Item { get; }
