@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="Quadra.App.Controls.BibliotecaVaziaView"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    x:Name="Root">
+
+    <VerticalStackLayout
+        MaximumWidthRequest="420"
+        Padding="{StaticResource SpacingLg}"
+        Spacing="{StaticResource SpacingMd}"
+        HorizontalOptions="Center"
+        VerticalOptions="Center">
+        <Border
+            WidthRequest="112"
+            HeightRequest="112"
+            Stroke="{AppThemeBinding Light={StaticResource ColorOutlineMutedLight}, Dark={StaticResource ColorOutlineMutedDark}}"
+            BackgroundColor="{AppThemeBinding Light={StaticResource ColorSurfaceLowLight}, Dark={StaticResource ColorSurfaceLowDark}}"
+            HorizontalOptions="Center">
+            <Border.StrokeShape>
+                <RoundRectangle CornerRadius="{StaticResource RadiusExtraLarge}" />
+            </Border.StrokeShape>
+            <Image Source="icon_book_placeholder.svg" WidthRequest="62" HeightRequest="62" />
+        </Border>
+
+        <Label
+            Text="Sua biblioteca está vazia"
+            Style="{StaticResource HeadlineMedium}"
+            TextColor="{AppThemeBinding Light={StaticResource ColorTextPrimaryLight}, Dark={StaticResource ColorTextPrimaryDark}}"
+            HorizontalTextAlignment="Center" />
+        <Label
+            Text="Importe seus arquivos CBR, CBZ, PDF ou EPUB para começar a ler offline com total privacidade."
+            Style="{StaticResource SecondaryTextStyle}"
+            HorizontalTextAlignment="Center" />
+
+        <Button
+            Text="Importar arquivo"
+            Style="{StaticResource PrimaryButtonStyle}"
+            Command="{Binding ImportarCommand, Source={x:Reference Root}}"
+            IsEnabled="{Binding PodeImportar, Source={x:Reference Root}}"
+            SemanticProperties.Description="Importar arquivo para a biblioteca"
+            HorizontalOptions="Center" />
+
+        <HorizontalStackLayout Spacing="{StaticResource SpacingSm}" HorizontalOptions="Center">
+            <Label Text="CBR" Style="{StaticResource LabelSmall}" />
+            <Label Text="CBZ" Style="{StaticResource LabelSmall}" />
+            <Label Text="PDF" Style="{StaticResource LabelSmall}" />
+            <Label Text="EPUB" Style="{StaticResource LabelSmall}" />
+        </HorizontalStackLayout>
+    </VerticalStackLayout>
+</ContentView>

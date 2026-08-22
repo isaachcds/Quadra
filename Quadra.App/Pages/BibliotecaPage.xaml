@@ -1,0 +1,590 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Quadra.App.Pages.BibliotecaPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:Quadra.App.Controls"
+    xmlns:presentation="clr-namespace:Quadra.App.Presentation"
+    xmlns:viewModels="clr-namespace:Quadra.App.ViewModels"
+    x:Name="PageRoot"
+    x:DataType="viewModels:BibliotecaViewModel"
+    AutomationId="LibraryPage"
+    BackgroundColor="{AppThemeBinding Light={StaticResource ColorBackgroundLight}, Dark={StaticResource ColorBackgroundDark}}"
+    SafeAreaEdges="Container"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="True">
+
+    <Grid RowDefinitions="Auto,*">
+        <Grid Padding="20,12,20,8">
+            <Grid
+                IsVisible="{Binding CabecalhoPadraoVisivel}"
+                ColumnDefinitions="Auto,*,Auto,Auto"
+                ColumnSpacing="{StaticResource SpacingSm}">
+                <Image
+                    Source="quadra_mark.svg"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    SemanticProperties.Description="Símbolo do Quadra"
+                    VerticalOptions="Center" />
+                <Label
+                    Grid.Column="1"
+                    Text="{StaticResource StringLibrary}"
+                    Style="{StaticResource HeadlineMobile}"
+                    TextColor="{AppThemeBinding Light={StaticResource ColorTextPrimaryLight}, Dark={StaticResource ColorTextPrimaryDark}}"
+                    VerticalOptions="Center" />
+                <ImageButton
+                    Grid.Column="2"
+                    AutomationId="LibrarySearchButton"
+                    Source="icon_search.svg"
+                    WidthRequest="48"
+                    HeightRequest="48"
+                    Padding="12"
+                    BackgroundColor="Transparent"
+                    Clicked="OnSearchButtonClicked"
+                    SemanticProperties.Description="{StaticResource StringSearchLibrary}" />
+                <Grid Grid.Column="3" WidthRequest="48" HeightRequest="48">
+                    <ImageButton
+                        AutomationId="LibraryFilterButton"
+                        Source="icon_filter.svg"
+                        WidthRequest="48"
+                        HeightRequest="48"
+                        Padding="12"
+                        BackgroundColor="Transparent"
+                        Command="{Binding AbrirPainelFiltrosCommand}"
+                        SemanticProperties.Description="{Binding DescricaoBotaoFiltros}" />
+                    <Border
+                        AutomationId="LibraryFilterBadge"
+                        IsVisible="{Binding PossuiFiltrosAtivos}"
+                        Padding="5,1"
+                        StrokeThickness="0"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}"
+                        HorizontalOptions="End"
+                        VerticalOptions="Start"
+                        InputTransparent="True">
+                        <Border.StrokeShape>
+                            <RoundRectangle CornerRadius="{StaticResource RadiusPill}" />
+                        </Border.StrokeShape>
+                        <Label
+                            Text="{Binding TextoBadgeFiltros}"
+                            Style="{StaticResource LabelSmall}"
+                            TextColor="{AppThemeBinding Light={StaticResource ColorAccentOnPrimaryLight}, Dark={StaticResource ColorAccentOnPrimaryDark}}" />
+                    </Border>
+                </Grid>
+            </Grid>
+
+            <Grid
+                IsVisible="{Binding BuscaVisivel}"
+                ColumnDefinitions="*,Auto,Auto"
+                ColumnSpacing="{StaticResource SpacingSm}">
+                <Entry
+                    x:Name="SearchEntry"
+                    AutomationId="LibrarySearchEntry"
+                    Placeholder="{StaticResource StringSearchLibrary}"
+                    Text="{Binding TextoBusca}"
+                    Style="{StaticResource InputStyle}"
+                    ClearButtonVisibility="Never"
+                    ReturnType="Search"
+                    SemanticProperties.Description="{StaticResource StringSearchLibrary}" />
+                <ImageButton
+                    Grid.Column="1"
+                    AutomationId="LibrarySearchClearButton"
+                    Source="icon_close.svg"
+                    WidthRequest="48"
+                    HeightRequest="48"
+                    Padding="13"
+                    BackgroundColor="Transparent"
+                    IsEnabled="{Binding PodeLimparPesquisa}"
+                    Command="{Binding LimparBuscaCommand}"
+                    SemanticProperties.Description="{StaticResource StringClearSearch}" />
+                <ImageButton
+                    Grid.Column="2"
+                    AutomationId="LibrarySearchCloseButton"
+                    Source="icon_back.svg"
+                    WidthRequest="48"
+                    HeightRequest="48"
+                    Padding="12"
+                    BackgroundColor="Transparent"
+                    Command="{Binding FecharBuscaCommand}"
+                    SemanticProperties.Description="{StaticResource StringCloseSearch}" />
+            </Grid>
+        </Grid>
+
+        <Grid Grid.Row="1" Padding="20,0" RowDefinitions="Auto,Auto,*">
+            <VerticalStackLayout
+                IsVisible="{Binding PossuiContinuarLendo}"
+                Spacing="{StaticResource SpacingSm}"
+                Margin="0,8,0,16">
+                <Label Text="Continuar lendo" Style="{StaticResource SectionTitleStyle}" />
+                <controls:CartaoContinuarLeitura
+                    Obra="{Binding ContinuarLendo}"
+                    AbrirCommand="{Binding AbrirDetalhesCommand}" />
+            </VerticalStackLayout>
+
+            <ScrollView
+                Grid.Row="1"
+                Orientation="Horizontal"
+                HorizontalScrollBarVisibility="Never"
+                Margin="0,0,0,16">
+                <HorizontalStackLayout Spacing="{StaticResource SpacingSm}">
+                    <Button
+                        AutomationId="FormatFilterAll"
+                        Text="Todos"
+                        Style="{StaticResource FilterChipStyle}"
+                        Command="{Binding SelecionarFiltroCommand}"
+                        CommandParameter="{x:Static presentation:FiltroFormatoBiblioteca.Todos}"
+                        SemanticProperties.Description="{Binding DescricaoFiltroTodos}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding FiltroTodosSelecionado}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button
+                        AutomationId="FormatFilterEpub"
+                        Text="EPUB"
+                        Style="{StaticResource FilterChipStyle}"
+                        Command="{Binding SelecionarFiltroCommand}"
+                        CommandParameter="{x:Static presentation:FiltroFormatoBiblioteca.Epub}"
+                        SemanticProperties.Description="{Binding DescricaoFiltroEpub}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding FiltroEpubSelecionado}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button
+                        AutomationId="FormatFilterPdf"
+                        Text="PDF"
+                        Style="{StaticResource FilterChipStyle}"
+                        Command="{Binding SelecionarFiltroCommand}"
+                        CommandParameter="{x:Static presentation:FiltroFormatoBiblioteca.Pdf}"
+                        SemanticProperties.Description="{Binding DescricaoFiltroPdf}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding FiltroPdfSelecionado}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button
+                        AutomationId="FormatFilterComics"
+                        Text="CBR/CBZ"
+                        Style="{StaticResource FilterChipStyle}"
+                        Command="{Binding SelecionarFiltroCommand}"
+                        CommandParameter="{x:Static presentation:FiltroFormatoBiblioteca.Quadrinhos}"
+                        SemanticProperties.Description="{Binding DescricaoFiltroComics}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding FiltroComicsSelecionado}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                </HorizontalStackLayout>
+            </ScrollView>
+
+            <CollectionView
+                Grid.Row="2"
+                AutomationId="LibraryGrid"
+                IsVisible="{Binding BibliotecaPreenchida}"
+                ItemsSource="{Binding ItensFiltrados}"
+                SemanticProperties.Description="{Binding DescricaoResultados}"
+                SelectionMode="None">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout
+                        Orientation="Vertical"
+                        Span="2"
+                        HorizontalItemSpacing="16"
+                        VerticalItemSpacing="24" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:DadosObraBiblioteca">
+                        <controls:CartaoObraBiblioteca
+                            Obra="{Binding .}"
+                            AbrirCommand="{Binding BindingContext.AbrirDetalhesCommand, Source={x:Reference PageRoot}}"
+                            ExcluirCommand="{Binding BindingContext.ExcluirItemCommand, Source={x:Reference PageRoot}}" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                <CollectionView.Footer>
+                    <BoxView HeightRequest="96" BackgroundColor="Transparent" />
+                </CollectionView.Footer>
+            </CollectionView>
+
+            <VerticalStackLayout
+                Grid.Row="2"
+                AutomationId="LibraryNoResults"
+                IsVisible="{Binding FiltroSemResultados}"
+                Spacing="{StaticResource SpacingMd}"
+                Padding="24"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+                <Label
+                    Text="{Binding TituloSemResultados}"
+                    Style="{StaticResource SectionTitleStyle}"
+                    HorizontalTextAlignment="Center" />
+                <Label
+                    Text="{Binding DescricaoSemResultados}"
+                    Style="{StaticResource SecondaryTextStyle}"
+                    HorizontalTextAlignment="Center" />
+                <Button
+                    Text="{StaticResource StringClearSearch}"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    IsVisible="{Binding BuscaAtiva}"
+                    Command="{Binding LimparBuscaCommand}" />
+                <Button
+                    Text="{StaticResource StringClearFilters}"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    IsVisible="{Binding PossuiFiltrosAtivos}"
+                    Command="{Binding LimparFiltrosBibliotecaCommand}" />
+                <Button
+                    Text="{StaticResource StringShowAll}"
+                    Style="{StaticResource DangerButtonStyle}"
+                    Command="{Binding VoltarParaTodosCommand}" />
+            </VerticalStackLayout>
+
+            <controls:BibliotecaVaziaView
+                Grid.RowSpan="3"
+                IsVisible="{Binding BibliotecaVazia}"
+                ImportarCommand="{Binding ImportarArquivoCommand}"
+                PodeImportar="{Binding PodeImportar}" />
+
+            <VerticalStackLayout
+                Grid.RowSpan="3"
+                IsVisible="{Binding TemErro}"
+                Spacing="{StaticResource SpacingMd}"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+                <Label Text="{Binding MensagemErro}" Style="{StaticResource BodyTextStyle}" />
+                <Button
+                    Text="Tentar novamente"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Command="{Binding CarregarBibliotecaCommand}" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout
+                Grid.RowSpan="3"
+                IsVisible="{Binding EstaCarregandoBiblioteca}"
+                Spacing="{StaticResource SpacingSm}"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+                <ActivityIndicator IsRunning="{Binding EstaCarregandoBiblioteca}" />
+                <Label Text="Carregando biblioteca…" Style="{StaticResource SecondaryTextStyle}" />
+            </VerticalStackLayout>
+
+            <ImageButton
+                Grid.RowSpan="3"
+                AutomationId="ImportButton"
+                Source="icon_import.svg"
+                WidthRequest="64"
+                HeightRequest="64"
+                Padding="18"
+                Margin="0,0,4,20"
+                CornerRadius="32"
+                BackgroundColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                IsVisible="{Binding PossuiItens}"
+                IsEnabled="{Binding PodeImportar}"
+                Command="{Binding ImportarArquivoCommand}"
+                SemanticProperties.Description="Importar arquivo" />
+        </Grid>
+
+        <Grid
+            Grid.RowSpan="2"
+            AutomationId="LibraryFilterPanel"
+            IsVisible="{Binding PainelFiltrosAberto}"
+            InputTransparent="False">
+            <BoxView
+                BackgroundColor="{AppThemeBinding Light={StaticResource ColorSurfaceLowestDark}, Dark={StaticResource ColorSurfaceLowestDark}}"
+                Opacity="0.72">
+                <BoxView.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding FecharPainelFiltrosCommand}" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource ColorBackgroundLight}, Dark={StaticResource ColorBackgroundDark}}"
+                MaximumHeightRequest="720"
+                VerticalOptions="End">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="24,24,0,0" />
+                </Border.StrokeShape>
+                <Grid RowDefinitions="Auto,*,Auto">
+                    <Grid
+                        Padding="20,16,12,8"
+                        ColumnDefinitions="*,Auto">
+                        <Label
+                            Text="{StaticResource StringFilters}"
+                            Style="{StaticResource HeadlineMedium}"
+                            TextColor="{AppThemeBinding Light={StaticResource ColorTextPrimaryLight}, Dark={StaticResource ColorTextPrimaryDark}}"
+                            VerticalOptions="Center" />
+                        <ImageButton
+                            Grid.Column="1"
+                            Source="icon_close.svg"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            Padding="12"
+                            BackgroundColor="Transparent"
+                            Command="{Binding FecharPainelFiltrosCommand}"
+                            SemanticProperties.Description="Fechar painel de filtros" />
+                    </Grid>
+
+                    <ScrollView Grid.Row="1">
+                        <VerticalStackLayout Padding="20,8" Spacing="{StaticResource SpacingLg}">
+                            <VerticalStackLayout Spacing="{StaticResource SpacingSm}">
+                                <Label Text="{StaticResource StringFormat}" Style="{StaticResource SectionTitleStyle}" />
+                                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" RowSpacing="8" ColumnSpacing="8">
+                                    <Button
+                                        Text="{StaticResource StringAll}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Command="{Binding SelecionarFormatoTemporarioCommand}"
+                                        CommandParameter="{x:Static presentation:FiltroFormatoBiblioteca.Todos}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding FormatoTempTodos}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                                <Setter Property="SemanticProperties.Description" Value="Todos os formatos, selecionado" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <Button
+                                        Grid.Column="1"
+                                        Text="{StaticResource StringComics}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Command="{Binding SelecionarFormatoTemporarioCommand}"
+                                        CommandParameter="{x:Static presentation:FiltroFormatoBiblioteca.Quadrinhos}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding FormatoTempComics}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                                <Setter Property="SemanticProperties.Description" Value="CBR e CBZ, selecionado" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <Button
+                                        Grid.Row="1"
+                                        Text="{StaticResource StringFormatPdf}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Command="{Binding SelecionarFormatoTemporarioCommand}"
+                                        CommandParameter="{x:Static presentation:FiltroFormatoBiblioteca.Pdf}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding FormatoTempPdf}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                                <Setter Property="SemanticProperties.Description" Value="PDF, selecionado" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <Button
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        Text="{StaticResource StringFormatEpub}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Command="{Binding SelecionarFormatoTemporarioCommand}"
+                                        CommandParameter="{x:Static presentation:FiltroFormatoBiblioteca.Epub}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding FormatoTempEpub}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                                <Setter Property="SemanticProperties.Description" Value="EPUB, selecionado" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                </Grid>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Spacing="{StaticResource SpacingSm}">
+                                <Label Text="{StaticResource StringReadingStatus}" Style="{StaticResource SectionTitleStyle}" />
+                                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" RowSpacing="8" ColumnSpacing="8">
+                                    <Button
+                                        AutomationId="LibraryStatusAll"
+                                        Text="{StaticResource StringAll}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Command="{Binding SelecionarStatusTemporarioCommand}"
+                                        CommandParameter="{x:Static presentation:FiltroStatusLeituraBiblioteca.Todos}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding StatusTempTodos}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                                <Setter Property="SemanticProperties.Description" Value="Todos os estados, selecionado" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <Button
+                                        Grid.Column="1"
+                                        AutomationId="LibraryStatusNotStarted"
+                                        Text="{StaticResource StringNotStarted}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Command="{Binding SelecionarStatusTemporarioCommand}"
+                                        CommandParameter="{x:Static presentation:FiltroStatusLeituraBiblioteca.NaoIniciada}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding StatusTempNaoIniciado}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                                <Setter Property="SemanticProperties.Description" Value="Não iniciado, selecionado" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <Button
+                                        Grid.Row="1"
+                                        AutomationId="LibraryStatusInProgress"
+                                        Text="{StaticResource StringInProgress}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Command="{Binding SelecionarStatusTemporarioCommand}"
+                                        CommandParameter="{x:Static presentation:FiltroStatusLeituraBiblioteca.EmAndamento}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding StatusTempEmAndamento}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                                <Setter Property="SemanticProperties.Description" Value="Em andamento, selecionado" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <Button
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        AutomationId="LibraryStatusCompleted"
+                                        Text="{StaticResource StringCompleted}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Command="{Binding SelecionarStatusTemporarioCommand}"
+                                        CommandParameter="{x:Static presentation:FiltroStatusLeituraBiblioteca.Concluida}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding StatusTempConcluido}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                                <Setter Property="SemanticProperties.Description" Value="Concluído, selecionado" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                </Grid>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Spacing="{StaticResource SpacingSm}">
+                                <Label Text="{StaticResource StringSortBy}" Style="{StaticResource SectionTitleStyle}" />
+                                <Button
+                                    AutomationId="LibrarySortRecentlyImported"
+                                    Text="{StaticResource StringRecentlyImported}"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Command="{Binding SelecionarOrdenacaoTemporariaCommand}"
+                                    CommandParameter="{x:Static presentation:OpcaoOrdenacaoBiblioteca.ImportadasRecentemente}">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SortTempRecentes}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                            <Setter Property="SemanticProperties.Description" Value="Importados recentemente, selecionado" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Button
+                                    AutomationId="LibrarySortLastRead"
+                                    Text="{StaticResource StringLastReadSort}"
+                                    Style="{StaticResource FilterChipStyle}"
+                                    Command="{Binding SelecionarOrdenacaoTemporariaCommand}"
+                                    CommandParameter="{x:Static presentation:OpcaoOrdenacaoBiblioteca.UltimaLeitura}">
+                                    <Button.Triggers>
+                                        <DataTrigger TargetType="Button" Binding="{Binding SortTempUltimaLeitura}" Value="True">
+                                            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                            <Setter Property="SemanticProperties.Description" Value="Última leitura, selecionado" />
+                                        </DataTrigger>
+                                    </Button.Triggers>
+                                </Button>
+                                <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,*" RowSpacing="8" ColumnSpacing="8">
+                                    <Button
+                                        AutomationId="LibrarySortTitleAscending"
+                                        Text="{StaticResource StringTitleAscending}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Command="{Binding SelecionarOrdenacaoTemporariaCommand}"
+                                        CommandParameter="{x:Static presentation:OpcaoOrdenacaoBiblioteca.TituloCrescente}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SortTempTituloAsc}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                                <Setter Property="SemanticProperties.Description" Value="Título A a Z, selecionado" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <Button
+                                        Grid.Column="1"
+                                        AutomationId="LibrarySortTitleDescending"
+                                        Text="{StaticResource StringTitleDescending}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Command="{Binding SelecionarOrdenacaoTemporariaCommand}"
+                                        CommandParameter="{x:Static presentation:OpcaoOrdenacaoBiblioteca.TituloDecrescente}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SortTempTituloDesc}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                                <Setter Property="SemanticProperties.Description" Value="Título Z a A, selecionado" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <Button
+                                        Grid.Row="1"
+                                        AutomationId="LibrarySortProgressAscending"
+                                        Text="{StaticResource StringProgressAscending}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Command="{Binding SelecionarOrdenacaoTemporariaCommand}"
+                                        CommandParameter="{x:Static presentation:OpcaoOrdenacaoBiblioteca.ProgressoCrescente}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SortTempProgressoAsc}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                                <Setter Property="SemanticProperties.Description" Value="Menor progresso, selecionado" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                    <Button
+                                        Grid.Row="1"
+                                        Grid.Column="1"
+                                        AutomationId="LibrarySortProgressDescending"
+                                        Text="{StaticResource StringProgressDescending}"
+                                        Style="{StaticResource FilterChipStyle}"
+                                        Command="{Binding SelecionarOrdenacaoTemporariaCommand}"
+                                        CommandParameter="{x:Static presentation:OpcaoOrdenacaoBiblioteca.ProgressoDecrescente}">
+                                        <Button.Triggers>
+                                            <DataTrigger TargetType="Button" Binding="{Binding SortTempProgressoDesc}" Value="True">
+                                                <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
+                                                <Setter Property="SemanticProperties.Description" Value="Maior progresso, selecionado" />
+                                            </DataTrigger>
+                                        </Button.Triggers>
+                                    </Button>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </ScrollView>
+
+                    <Grid
+                        Grid.Row="2"
+                        Padding="20,12,20,20"
+                        ColumnDefinitions="*,*"
+                        ColumnSpacing="{StaticResource SpacingSm}"
+                        BackgroundColor="{AppThemeBinding Light={StaticResource ColorSurfaceLowLight}, Dark={StaticResource ColorSurfaceLowDark}}">
+                        <Button
+                            AutomationId="LibraryFilterClearButton"
+                            Text="{StaticResource StringClearFilters}"
+                            Style="{StaticResource SecondaryButtonStyle}"
+                            Command="{Binding LimparFiltrosTemporariosCommand}" />
+                        <Button
+                            Grid.Column="1"
+                            AutomationId="LibraryFilterApplyButton"
+                            Text="{StaticResource StringApplyFilters}"
+                            Style="{StaticResource PrimaryButtonStyle}"
+                            Command="{Binding AplicarFiltrosCommand}" />
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid
+            Grid.RowSpan="2"
+            IsVisible="{Binding EstaImportando}"
+            BackgroundColor="{AppThemeBinding Light={StaticResource ColorSurfaceLowestLight}, Dark={StaticResource ColorSurfaceLowestDark}}"
+            Opacity="0.96"
+            InputTransparent="False">
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Padding="24"
+                HorizontalOptions="Center"
+                VerticalOptions="Center">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="{StaticResource RadiusLarge}" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="{StaticResource SpacingMd}" HorizontalOptions="Center">
+                    <ActivityIndicator IsRunning="{Binding EstaImportando}" />
+                    <Label Text="Importando arquivo…" Style="{StaticResource BodyTextStyle}" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+    </Grid>
+</ContentPage>

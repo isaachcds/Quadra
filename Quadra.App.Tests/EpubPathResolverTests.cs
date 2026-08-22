@@ -1,4 +1,4 @@
-using Quadra.App.Services;
+using Quadra.App.Services.Readers;
 
 namespace Quadra.App.Tests;
 
@@ -39,7 +39,7 @@ public class EpubPathResolverTests
     }
 
     [Fact]
-    public void ResolveInsideRoot_AllowsParentSegmentThatRemainsInBook()
+    public void ResolverDentroRaiz_PermiteSegmentoPaiQuePermaneceNaObra()
     {
         var baseDirectory = Path.Combine(_root, "OEBPS", "Text");
         var result = EpubPathResolver.ResolveInsideRoot(

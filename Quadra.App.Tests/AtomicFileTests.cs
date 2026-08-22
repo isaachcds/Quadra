@@ -1,4 +1,4 @@
-using Quadra.App.Services;
+using Quadra.App.Infrastructure;
 
 namespace Quadra.App.Tests;
 

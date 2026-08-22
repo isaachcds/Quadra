@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Quadra.App.Pages.LeitorPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:Quadra.App.Controls"
+    xmlns:models="clr-namespace:Quadra.App.Models"
+    xmlns:viewModels="clr-namespace:Quadra.App.ViewModels"
+    x:DataType="viewModels:LeitorViewModel"
+    AutomationId="ReaderPage"
+    BackgroundColor="{StaticResource LeitorBackground}"
+    SafeAreaEdges="None"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="False">
+
+    <Grid BackgroundColor="{StaticResource LeitorBackground}">
+        <CarouselView
+            x:Name="CarrosselLeitor"
+            AutomationId="ReaderCarousel"
+            ItemsSource="{Binding Paginas}"
+            Position="{Binding PaginaAtual, Mode=TwoWay}"
+            IsVisible="{Binding LeituraVisivel}"
+            IsSwipeEnabled="True"
+            Loop="False"
+            BackgroundColor="{StaticResource LeitorBackground}"
+            Scrolled="OnCarouselScrolled"
+            PositionChanged="OnCarouselPositionChanged"
+            SemanticProperties.Description="Páginas da obra">
+            <CarouselView.ItemTemplate>
+                <DataTemplate x:DataType="models:ComicPage">
+                    <Grid BackgroundColor="{StaticResource LeitorBackground}">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer
+                                NumberOfTapsRequired="1"
+                                Tapped="OnLeitorTapped" />
+                        </Grid.GestureRecognizers>
+                        <controls:ZoomableImage
+                            Source="{Binding FilePath}"
+                            HorizontalOptions="Fill"
+                            VerticalOptions="Fill"
+                            DoubleTapDetected="OnZoomDoubleTapDetected"
+                            ZoomStateChanged="OnZoomStateChanged" />
+                    </Grid>
+                </DataTemplate>
+            </CarouselView.ItemTemplate>
+        </CarouselView>
+
+        <Grid
+            IsVisible="{Binding LeituraVisivel}"
+            InputTransparent="True"
+            ColumnDefinitions="0.3*,0.4*,0.3*"
+            ZIndex="1">
+            <Grid
+                AutomationId="ReaderLeftTapZone"
+                SemanticProperties.Description="Zona esquerda para página anterior" />
+            <Grid
+                Grid.Column="1"
+                AutomationId="ReaderCenterTapZone"
+                SemanticProperties.Description="Zona central para mostrar ou ocultar controles" />
+            <Grid
+                Grid.Column="2"
+                AutomationId="ReaderRightTapZone"
+                SemanticProperties.Description="Zona direita para próxima página" />
+        </Grid>
+
+        <Border
+            AutomationId="ReaderTopOverlay"
+            IsVisible="{Binding ControlesVisiveis}"
+            Style="{StaticResource LeitorOverlayStyle}"
+            Padding="12,8"
+            SafeAreaEdges="Container"
+            VerticalOptions="Start"
+            ZIndex="10">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                <ImageButton
+                    AutomationId="ReaderBackButton"
+                    Source="icon_back.svg"
+                    WidthRequest="48"
+                    HeightRequest="48"
+                    Padding="12"
+                    BackgroundColor="{StaticResource LeitorControlSurface}"
+                    Command="{Binding VoltarCommand}"
+                    SemanticProperties.Description="{StaticResource StringReaderBack}" />
+                <Label
+                    Grid.Column="1"
+                    Text="{Binding Item.Title}"
+                    Style="{StaticResource LabelMedium}"
+                    FontFamily="OpenSansSemibold"
+                    TextColor="{StaticResource LeitorTextPrimary}"
+                    VerticalOptions="Center"
+                    MaxLines="1"
+                    LineBreakMode="TailTruncation" />
+                <Label
+                    Grid.Column="2"
+                    AutomationId="ReaderPageCounter"
+                    Text="{Binding TextoPagina}"
+                    Style="{StaticResource LabelSmall}"
+                    TextColor="{StaticResource LeitorTextSecondary}"
+                    VerticalOptions="Center"
+                    SemanticProperties.Description="{Binding DescricaoContador}" />
+                <ImageButton
+                    Grid.Column="3"
+                    AutomationId="ReaderSettingsButton"
+                    Source="icon_settings.svg"
+                    WidthRequest="48"
+                    HeightRequest="48"
+                    Padding="12"
+                    BackgroundColor="{StaticResource LeitorControlSurface}"
+                    Command="{Binding AbrirConfiguracoesCommand}"
+                    SemanticProperties.Description="{StaticResource StringReaderSettings}" />
+            </Grid>
+        </Border>
+
+        <Border
+            AutomationId="ReaderBottomOverlay"
+            IsVisible="{Binding ControlesVisiveis}"
+            Style="{StaticResource LeitorOverlayStyle}"
+            Padding="16,10"
+            SafeAreaEdges="Container"
+            VerticalOptions="End"
+            ZIndex="10">
+            <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
+                <Slider
+                    AutomationId="ReaderProgressSlider"
+                    Minimum="0"
+                    Maximum="{Binding IndiceMaximo}"
+                    Value="{Binding PaginaAtual, Mode=OneWay}"
+                    MinimumTrackColor="{StaticResource LeitorProgress}"
+                    MaximumTrackColor="{StaticResource LeitorControlSurface}"
+                    ThumbColor="{StaticResource LeitorProgress}"
+                    DragCompleted="OnSliderDragCompleted"
+                    SemanticProperties.Description="Navegar diretamente para uma página" />
+                <Grid
+                    Grid.Row="1"
+                    ColumnDefinitions="Auto,*,Auto"
+                    ColumnSpacing="12">
+                    <ImageButton
+                        AutomationId="ReaderPreviousButton"
+                        Source="icon_back.svg"
+                        WidthRequest="48"
+                        HeightRequest="48"
+                        Padding="12"
+                        BackgroundColor="{StaticResource LeitorControlSurface}"
+                        IsEnabled="{Binding PodeVoltarPagina}"
+                        Clicked="OnPreviousClicked"
+                        SemanticProperties.Description="{StaticResource StringReaderPreviousPage}" />
+                    <Label
+                        Grid.Column="1"
+                        Text="{Binding TextoPagina}"
+                        Style="{StaticResource BodyMedium}"
+                        TextColor="{StaticResource LeitorTextPrimary}"
+                        HorizontalTextAlignment="Center"
+                        VerticalOptions="Center"
+                        SemanticProperties.Description="{Binding DescricaoContador}" />
+                    <ImageButton
+                        Grid.Column="2"
+                        AutomationId="ReaderNextButton"
+                        Source="icon_forward.svg"
+                        WidthRequest="48"
+                        HeightRequest="48"
+                        Padding="12"
+                        BackgroundColor="{StaticResource LeitorControlSurface}"
+                        IsEnabled="{Binding PodeAvancarPagina}"
+                        Clicked="OnNextClicked"
+                        SemanticProperties.Description="{StaticResource StringReaderNextPage}" />
+                </Grid>
+            </Grid>
+        </Border>
+
+        <ProgressBar
+            IsVisible="{Binding ControlesOcultos}"
+            Progress="{Binding ProgressoNormalizado}"
+            ProgressColor="{StaticResource LeitorProgress}"
+            BackgroundColor="{StaticResource LeitorControlSurface}"
+            HeightRequest="2"
+            VerticalOptions="End"
+            InputTransparent="True"
+            ZIndex="5" />
+
+        <Grid
+            AutomationId="ReaderSettingsPanel"
+            IsVisible="{Binding ConfiguracoesVisiveis}"
+            ZIndex="20">
+            <BoxView BackgroundColor="{StaticResource LeitorBackground}" Opacity="0.72">
+                <BoxView.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding FecharConfiguracoesCommand}" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+            <Border
+                Style="{StaticResource LeitorOverlayStyle}"
+                Padding="20,16,20,24"
+                SafeAreaEdges="Container"
+                VerticalOptions="End">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="24,24,0,0" />
+                </Border.StrokeShape>
+                <VerticalStackLayout Spacing="16">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <Label
+                            Text="{StaticResource StringReaderSettings}"
+                            Style="{StaticResource HeadlineMedium}"
+                            TextColor="{StaticResource LeitorTextPrimary}"
+                            VerticalOptions="Center" />
+                        <ImageButton
+                            Grid.Column="1"
+                            Source="icon_close.svg"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            Padding="12"
+                            BackgroundColor="Transparent"
+                            Command="{Binding FecharConfiguracoesCommand}"
+                            SemanticProperties.Description="Fechar configurações" />
+                    </Grid>
+                    <Button
+                        AutomationId="ReaderNavigationSwipeOnly"
+                        Text="{StaticResource StringReaderSwipeOnly}"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding SelecionarSomenteDeslizarCommand}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding SomenteDeslizarSelecionado}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{StaticResource LeitorProgress}" />
+                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                                <Setter Property="SemanticProperties.Description" Value="Somente deslizar, selecionado" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Button
+                        AutomationId="ReaderNavigationSwipeAndTap"
+                        Text="{StaticResource StringReaderSwipeAndTap}"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Command="{Binding SelecionarDeslizarETocarCommand}">
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding DeslizarETocarSelecionado}" Value="True">
+                                <Setter Property="BackgroundColor" Value="{StaticResource LeitorProgress}" />
+                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                                <Setter Property="SemanticProperties.Description" Value="Deslizar e tocar nas bordas, selecionado" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+                    <Label
+                        Text="{StaticResource StringReaderDoubleTapHelp}"
+                        Style="{StaticResource SecondaryTextStyle}"
+                        TextColor="{StaticResource LeitorTextSecondary}"
+                        HorizontalTextAlignment="Center" />
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <Grid
+            AutomationId="ReaderLoadingState"
+            IsVisible="{Binding EstaCarregando}"
+            BackgroundColor="{StaticResource LeitorBackground}"
+            ZIndex="30">
+            <Grid SafeAreaEdges="Container" VerticalOptions="Start">
+                <ImageButton
+                    Source="icon_back.svg"
+                    WidthRequest="48"
+                    HeightRequest="48"
+                    Margin="12"
+                    Padding="12"
+                    BackgroundColor="{StaticResource LeitorControlSurface}"
+                    HorizontalOptions="Start"
+                    Command="{Binding VoltarCommand}"
+                    SemanticProperties.Description="{StaticResource StringReaderBack}" />
+            </Grid>
+            <VerticalStackLayout
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Spacing="14">
+                <ActivityIndicator
+                    IsRunning="{Binding EstaCarregando}"
+                    WidthRequest="42"
+                    HeightRequest="42"
+                    Color="{StaticResource LeitorProgress}" />
+                <Label
+                    Text="{StaticResource StringReaderPreparing}"
+                    Style="{StaticResource BodyMedium}"
+                    TextColor="{StaticResource LeitorTextPrimary}" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <Grid
+            AutomationId="ReaderErrorState"
+            IsVisible="{Binding TemErro}"
+            Padding="32"
+            BackgroundColor="{StaticResource LeitorBackground}"
+            ZIndex="30">
+            <VerticalStackLayout
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Spacing="16">
+                <Label
+                    Text="{Binding MensagemErro}"
+                    Style="{StaticResource BodyLarge}"
+                    TextColor="{StaticResource LeitorTextPrimary}"
+                    HorizontalTextAlignment="Center" />
+                <Button
+                    Text="{StaticResource StringReaderBack}"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Command="{Binding VoltarCommand}" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <Grid
+            IsVisible="{Binding SemPaginas}"
+            Padding="32"
+            BackgroundColor="{StaticResource LeitorBackground}"
+            ZIndex="30">
+            <VerticalStackLayout
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Spacing="16">
+                <Label
+                    Text="{StaticResource StringReaderNoPages}"
+                    Style="{StaticResource BodyLarge}"
+                    TextColor="{StaticResource LeitorTextPrimary}"
+                    HorizontalTextAlignment="Center" />
+                <Button
+                    Text="{StaticResource StringReaderBack}"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Command="{Binding VoltarCommand}" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+</ContentPage>

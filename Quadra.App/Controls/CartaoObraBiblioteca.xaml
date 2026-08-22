@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView
+    x:Class="Quadra.App.Controls.CartaoObraBiblioteca"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:Quadra.App.Controls"
+    x:Name="Root">
+
+    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="{StaticResource SpacingSm}">
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer
+                Command="{Binding AbrirCommand, Source={x:Reference Root}}"
+                CommandParameter="{Binding Obra.Item, Source={x:Reference Root}}" />
+        </Grid.GestureRecognizers>
+
+        <Grid HeightRequest="210">
+            <controls:CapaObraView
+                CaminhoCapa="{Binding Obra.CaminhoCapa, Source={x:Reference Root}}"
+                PossuiCapa="{Binding Obra.PossuiCapa, Source={x:Reference Root}}"
+                Formato="{Binding Obra.Formato, Source={x:Reference Root}}"
+                DescricaoCapa="{Binding Obra.DescricaoCapa, Source={x:Reference Root}}" />
+
+            <ImageButton
+                Source="icon_more.svg"
+                WidthRequest="48"
+                HeightRequest="48"
+                Padding="12"
+                Margin="0,2,2,0"
+                BackgroundColor="{AppThemeBinding Light={StaticResource ColorSurfaceHighestLight}, Dark={StaticResource ColorSurfaceHighestDark}}"
+                CornerRadius="24"
+                HorizontalOptions="End"
+                VerticalOptions="Start"
+                Command="{Binding ExcluirCommand, Source={x:Reference Root}}"
+                CommandParameter="{Binding Obra.Item, Source={x:Reference Root}}"
+                SemanticProperties.Description="Remover obra da biblioteca" />
+        </Grid>
+
+        <Label
+            Grid.Row="1"
+            Text="{Binding Obra.Titulo, Source={x:Reference Root}}"
+            Style="{StaticResource BodyTextStyle}"
+            FontFamily="OpenSansSemibold"
+            MaxLines="2"
+            LineBreakMode="TailTruncation" />
+
+        <VerticalStackLayout Grid.Row="2" Spacing="{StaticResource SpacingXs}">
+            <Label
+                Text="{Binding Obra.TextoProgresso, Source={x:Reference Root}}"
+                Style="{StaticResource SecondaryTextStyle}" />
+            <ProgressBar
+                Progress="{Binding Obra.ValorProgresso, Source={x:Reference Root}}"
+                IsVisible="{Binding Obra.ExibeProgresso, Source={x:Reference Root}}"
+                Style="{StaticResource ProgressBarStyle}"
+                HeightRequest="4" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentView>

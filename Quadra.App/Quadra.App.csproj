@@ -75,16 +75,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="Pages\BookDetailsPage.xaml">
+	  <MauiXaml Update="Pages\DetalhesObraPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\EpubReaderPage.xaml">
+	  <MauiXaml Update="Pages\LeitorEpubPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\LibraryPage.xaml">
+	  <MauiXaml Update="Pages\BibliotecaPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="Pages\ReaderPage.xaml">
+	  <MauiXaml Update="Pages\LeitorPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>

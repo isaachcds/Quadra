@@ -5,16 +5,16 @@ namespace Quadra.App;
 public partial class AppShell : Shell
 {
     public AppShell(
-        LibraryPage libraryPage,
-        CollectionsPage collectionsPage,
-        HistoryPage historyPage,
+        BibliotecaPage libraryPage,
+        ColecoesPage collectionsPage,
+        HistoricoPage historyPage,
         SettingsPage settingsPage)
     {
         InitializeComponent();
 
-        Routing.RegisterRoute(nameof(BookDetailsPage), typeof(BookDetailsPage));
-        Routing.RegisterRoute(nameof(ReaderPage), typeof(ReaderPage));
-        Routing.RegisterRoute(nameof(EpubReaderPage), typeof(EpubReaderPage));
+        Routing.RegisterRoute("BookDetailsPage", typeof(DetalhesObraPage));
+        Routing.RegisterRoute("ReaderPage", typeof(LeitorPage));
+        Routing.RegisterRoute("EpubReaderPage", typeof(LeitorEpubPage));
 
         var mainTabs = new TabBar { Route = "main" };
         mainTabs.Items.Add(CreateTab(

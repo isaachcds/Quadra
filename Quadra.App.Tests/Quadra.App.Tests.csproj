@@ -17,18 +17,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\Quadra.App\Services\AsyncInitializationGate.cs" Link="Services\AsyncInitializationGate.cs" />
-    <Compile Include="..\Quadra.App\Services\AtomicFile.cs" Link="Services\AtomicFile.cs" />
-    <Compile Include="..\Quadra.App\Services\BookDetailsPresentation.cs" Link="Services\BookDetailsPresentation.cs" />
-    <Compile Include="..\Quadra.App\Services\EpubPathResolver.cs" Link="Services\EpubPathResolver.cs" />
-    <Compile Include="..\Quadra.App\Services\FileProcessingLimits.cs" Link="Services\FileProcessingLimits.cs" />
-    <Compile Include="..\Quadra.App\Services\LibraryPresentationLogic.cs" Link="Services\LibraryPresentationLogic.cs" />
-    <Compile Include="..\Quadra.App\Services\NaturalStringComparer.cs" Link="Services\NaturalStringComparer.cs" />
-    <Compile Include="..\Quadra.App\Services\ReadingProgressCalculator.cs" Link="Services\ReadingProgressCalculator.cs" />
-    <Compile Include="..\Quadra.App\Services\ReaderPresentationLogic.cs" Link="Services\ReaderPresentationLogic.cs" />
-    <Compile Include="..\Quadra.App\Services\SupportedFileFormats.cs" Link="Services\SupportedFileFormats.cs" />
-    <Compile Include="..\Quadra.App\Services\IStorageSpaceService.cs" Link="Services\IStorageSpaceService.cs" />
-    <Compile Include="..\Quadra.App\Services\StorageSpacePolicy.cs" Link="Services\StorageSpacePolicy.cs" />
-    <None Include="..\Quadra.App\Pages\ReaderPage.xaml" Link="ReaderPage.xaml" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Include="..\Quadra.App\Infrastructure\AsyncInitializationGate.cs" Link="Infrastructure\AsyncInitializationGate.cs" />
+    <Compile Include="..\Quadra.App\Infrastructure\AtomicFile.cs" Link="Infrastructure\AtomicFile.cs" />
+    <Compile Include="..\Quadra.App\Infrastructure\NaturalStringComparer.cs" Link="Infrastructure\NaturalStringComparer.cs" />
+    <Compile Include="..\Quadra.App\Policies\FileProcessingLimits.cs" Link="Policies\FileProcessingLimits.cs" />
+    <Compile Include="..\Quadra.App\Policies\PoliticaEspacoArmazenamento.cs" Link="Policies\PoliticaEspacoArmazenamento.cs" />
+    <Compile Include="..\Quadra.App\Presentation\ApresentacaoDetalhesObra.cs" Link="Presentation\ApresentacaoDetalhesObra.cs" />
+    <Compile Include="..\Quadra.App\Presentation\LogicaApresentacaoBiblioteca.cs" Link="Presentation\LogicaApresentacaoBiblioteca.cs" />
+    <Compile Include="..\Quadra.App\Presentation\CalculadoraProgressoLeitura.cs" Link="Presentation\CalculadoraProgressoLeitura.cs" />
+    <Compile Include="..\Quadra.App\Presentation\LogicaApresentacaoLeitor.cs" Link="Presentation\LogicaApresentacaoLeitor.cs" />
+    <Compile Include="..\Quadra.App\Services\Import\SupportedFileFormats.cs" Link="Services\Import\SupportedFileFormats.cs" />
+    <Compile Include="..\Quadra.App\Services\Readers\EpubPathResolver.cs" Link="Services\Readers\EpubPathResolver.cs" />
+    <Compile Include="..\Quadra.App\Services\Storage\IEspacoArmazenamentoService.cs" Link="Services\Storage\IEspacoArmazenamentoService.cs" />
+    <None Include="..\Quadra.App\Pages\LeitorPage.xaml" Link="LeitorPage.xaml" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

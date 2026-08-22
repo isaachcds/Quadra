@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using Quadra.App.Data;
 using Quadra.App.Pages;
-using Quadra.App.Services;
+using Quadra.App.Services.Covers;
+using Quadra.App.Services.Readers;
+using Quadra.App.Services.Storage;
 using Quadra.App.ViewModels;
 
 #if ANDROID
@@ -45,53 +47,53 @@ public static class MauiProgram
 
         builder.Services.AddSingleton<AppShell>();
         builder.Services.AddSingleton<QuadraDatabase>();
-        builder.Services.AddSingleton<LibraryStorageService>();
+        builder.Services.AddSingleton<ArmazenamentoBibliotecaService>();
 
 #if ANDROID
         builder.Services.AddSingleton<
-            IStorageSpaceService,
-            AndroidStorageSpaceService>();
+            IEspacoArmazenamentoService,
+            EspacoArmazenamentoAndroidService>();
 
         builder.Services.AddSingleton<
-            IPdfCoverService,
-            PdfCoverService>();
+            ICapaPdfService,
+            CapaPdfService>();
 
         builder.Services.AddSingleton<
-            IPdfReaderService,
-            PdfReaderService>();
+            ILeitorPdfService,
+            LeitorPdfService>();
 #else
 builder.Services.AddSingleton<
-    IStorageSpaceService,
-    StorageSpaceService>();
+    IEspacoArmazenamentoService,
+    EspacoArmazenamentoService>();
 
 builder.Services.AddSingleton<
-    IPdfReaderService,
-    UnsupportedPdfReaderService>();
+    ILeitorPdfService,
+    LeitorPdfNaoSuportadoService>();
 #endif
 
-        builder.Services.AddSingleton<CoverService>();
-        builder.Services.AddSingleton<ComicReaderService>();
+        builder.Services.AddSingleton<CapaService>();
+        builder.Services.AddSingleton<LeitorQuadrinhosService>();
 
         builder.Services.AddSingleton<
-            IEpubReaderService,
-            EpubReaderService>();
+            ILeitorEpubService,
+            LeitorEpubService>();
 
-        builder.Services.AddSingleton<LibraryCleanupService>();
+        builder.Services.AddSingleton<LimpezaBibliotecaService>();
 
-        builder.Services.AddTransient<LibraryViewModel>();
-        builder.Services.AddTransient<LibraryPage>();
-        builder.Services.AddTransient<CollectionsPage>();
-        builder.Services.AddTransient<HistoryPage>();
+        builder.Services.AddTransient<BibliotecaViewModel>();
+        builder.Services.AddTransient<BibliotecaPage>();
+        builder.Services.AddTransient<ColecoesPage>();
+        builder.Services.AddTransient<HistoricoPage>();
         builder.Services.AddTransient<SettingsPage>();
 
-        builder.Services.AddTransient<BookDetailsViewModel>();
-        builder.Services.AddTransient<BookDetailsPage>();
+        builder.Services.AddTransient<DetalhesObraViewModel>();
+        builder.Services.AddTransient<DetalhesObraPage>();
 
-        builder.Services.AddTransient<ReaderViewModel>();
-        builder.Services.AddTransient<ReaderPage>();
+        builder.Services.AddTransient<LeitorViewModel>();
+        builder.Services.AddTransient<LeitorPage>();
 
-        builder.Services.AddTransient<EpubReaderPage>();
-        builder.Services.AddTransient<EpubReaderViewModel>();
+        builder.Services.AddTransient<LeitorEpubPage>();
+        builder.Services.AddTransient<LeitorEpubViewModel>();
         return builder.Build();
     }
 }

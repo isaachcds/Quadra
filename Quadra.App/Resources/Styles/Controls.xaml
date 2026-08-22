@@ -66,8 +66,8 @@
         <Setter Property="FontSize" Value="12" />
         <Setter Property="HorizontalTextAlignment" Value="Center" />
     </Style>
-    <Style x:Key="ReaderOverlayStyle" TargetType="Border">
-        <Setter Property="BackgroundColor" Value="{StaticResource ReaderOverlayBackground}" />
+    <Style x:Key="LeitorOverlayStyle" TargetType="Border">
+        <Setter Property="BackgroundColor" Value="{StaticResource LeitorOverlayBackground}" />
         <Setter Property="StrokeThickness" Value="0" />
     </Style>
 </ResourceDictionary>

@@ -1,4 +1,5 @@
-﻿using Quadra.App.Models;
+using Quadra.App.Models;
+using Quadra.App.Infrastructure;
 using SQLite;
 
 namespace Quadra.App.Data;
@@ -6,7 +7,7 @@ namespace Quadra.App.Data;
 public class QuadraDatabase
 {
     private readonly SQLiteAsyncConnection _connection;
-    private readonly Quadra.App.Services.AsyncInitializationGate
+    private readonly AsyncInitializationGate
         _initializationGate = new();
 
     public QuadraDatabase()
@@ -28,29 +29,29 @@ public class QuadraDatabase
     private async Task InitializeAsync()
     {
         await _initializationGate.EnsureInitializedAsync(
-            () => _connection.CreateTableAsync<LibraryItem>());
+            () => _connection.CreateTableAsync<ObraBiblioteca>());
     }
 
-    public async Task<List<LibraryItem>> GetLibraryItemsAsync()
+    public async Task<List<ObraBiblioteca>> ObterObrasBibliotecaAsync()
     {
         await InitializeAsync();
 
         return await _connection
-            .Table<LibraryItem>()
+            .Table<ObraBiblioteca>()
             .OrderByDescending(item => item.ImportedAt)
             .ToListAsync();
     }
 
-    public async Task<LibraryItem?> GetLibraryItemAsync(int id)
+    public async Task<ObraBiblioteca?> ObterObraBibliotecaAsync(int id)
     {
         await InitializeAsync();
 
         return await _connection
-            .Table<LibraryItem>()
+            .Table<ObraBiblioteca>()
             .FirstOrDefaultAsync(item => item.Id == id);
     }
 
-    public async Task<int> SaveLibraryItemAsync(LibraryItem item)
+    public async Task<int> SalvarObraBibliotecaAsync(ObraBiblioteca item)
     {
         ArgumentNullException.ThrowIfNull(item);
 
@@ -62,7 +63,7 @@ public class QuadraDatabase
         return await _connection.InsertAsync(item);
     }
 
-    public async Task<int> DeleteLibraryItemAsync(LibraryItem item)
+    public async Task<int> ExcluirObraBibliotecaAsync(ObraBiblioteca item)
     {
         ArgumentNullException.ThrowIfNull(item);
 
