@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Quadra.App.Data;
 using Quadra.App.Models;
@@ -9,29 +9,64 @@ namespace Quadra.App.ViewModels;
 
 public partial class ReaderViewModel : ObservableObject, IQueryAttributable
 {
+    private const string TapNavigationPreferenceKey = "ReaderTapNavigationEnabled";
+    private static readonly TimeSpan AutoHideDelay = TimeSpan.FromSeconds(4);
+
     private readonly ComicReaderService _comicReaderService;
     private readonly QuadraDatabase _database;
     private readonly SemaphoreSlim _progressLock = new(1, 1);
+    private readonly ReaderFocusState _focusState = new();
+    private readonly ReaderCloseCoordinator _closeCoordinator = new();
     private CancellationTokenSource? _loadCancellation;
     private CancellationTokenSource? _progressCancellation;
+    private CancellationTokenSource? _autoHideCancellation;
     private int _progressVersion;
+    private int _isClosing;
+    private int _navigationStarted;
 
     public ObservableCollection<ComicPage> Paginas { get; } = [];
 
     [ObservableProperty]
-    private LibraryItem? item;
+    public partial LibraryItem? Item { get; set; }
 
     [ObservableProperty]
-    private int paginaAtual;
+    public partial int PaginaAtual { get; set; }
 
     [ObservableProperty]
-    private bool estaCarregando;
+    public partial bool EstaCarregando { get; set; }
 
     [ObservableProperty]
-    private bool controlesVisiveis = true;
+    public partial bool ControlesVisiveis { get; set; } = true;
 
     [ObservableProperty]
-    private string textoPagina = string.Empty;
+    public partial bool ConfiguracoesVisiveis { get; set; }
+
+    [ObservableProperty]
+    public partial string TextoPagina { get; set; } = string.Empty;
+
+    [ObservableProperty]
+    public partial bool PodeVoltarPagina { get; set; }
+
+    [ObservableProperty]
+    public partial bool PodeAvancarPagina { get; set; }
+
+    [ObservableProperty]
+    public partial int IndiceMaximo { get; set; }
+
+    [ObservableProperty]
+    public partial double ProgressoNormalizado { get; set; }
+
+    [ObservableProperty]
+    public partial bool NavegacaoPorToqueAtivada { get; set; } = true;
+
+    [ObservableProperty]
+    public partial bool TemErro { get; set; }
+
+    [ObservableProperty]
+    public partial bool SemPaginas { get; set; }
+
+    [ObservableProperty]
+    public partial string MensagemErro { get; set; } = string.Empty;
 
     public ReaderViewModel(
         ComicReaderService comicReaderService,
@@ -39,75 +74,203 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
     {
         _comicReaderService = comicReaderService;
         _database = database;
+
+        try
+        {
+            NavegacaoPorToqueAtivada = Preferences.Default.Get(
+                TapNavigationPreferenceKey,
+                true);
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine(exception);
+        }
     }
 
-    public async void ApplyQueryAttributes(
-        IDictionary<string, object> query)
-    {
-        if (!query.TryGetValue("Item", out var value))
-            return;
+    public bool ControlesOcultos => !ControlesVisiveis;
+    public bool LeituraVisivel => !EstaCarregando && !TemErro && !SemPaginas && Paginas.Count > 0;
+    public bool SomenteDeslizarSelecionado => !NavegacaoPorToqueAtivada;
+    public bool DeslizarETocarSelecionado => NavegacaoPorToqueAtivada;
+    public string DescricaoContador => string.IsNullOrEmpty(TextoPagina)
+        ? "Nenhuma página disponível"
+        : $"Página {TextoPagina.Replace("/", "de")}";
 
-        if (value is not LibraryItem libraryItem)
+    public async void ApplyQueryAttributes(IDictionary<string, object> query)
+    {
+        if (!query.TryGetValue("Item", out var value) || value is not LibraryItem libraryItem)
+        {
+            TemErro = true;
+            MensagemErro = "Não foi possível abrir esta leitura.";
+            NotifyReaderState();
             return;
+        }
 
         Item = libraryItem;
         _loadCancellation?.Cancel();
         _loadCancellation?.Dispose();
         _loadCancellation = new CancellationTokenSource();
-
+        System.Diagnostics.Debug.WriteLine(
+            $"[ReaderLoad] Nova abertura; Formato={Item.Format}; Caminho={Item.FilePath}; " +
+            $"Cancelado={_loadCancellation.IsCancellationRequested}; PosicaoInicial={Item.CurrentPage}");
         await CarregarPaginasAsync(_loadCancellation.Token);
     }
 
+    public void ActivateFocusMode()
+    {
+        if (IsClosing)
+            return;
+
+        _focusState.ShowControls();
+        SyncFocusState();
+        ScheduleAutoHide();
+    }
+
+    public void RegisterInteraction()
+    {
+        if (IsClosing)
+            return;
+
+        _focusState.ShowControls();
+        SyncFocusState();
+
+        if (!_focusState.SettingsVisible)
+            ScheduleAutoHide();
+    }
+
+    public void SetPageFromSlider(double sliderValue)
+    {
+        if (Paginas.Count == 0 || IsClosing)
+            return;
+
+        PaginaAtual = ReaderPresentationLogic.CreatePageState(
+            (int)Math.Round(sliderValue),
+            Paginas.Count).Index;
+        RegisterInteraction();
+    }
+
+    public Task CloseAsync()
+    {
+        Interlocked.Exchange(ref _isClosing, 1);
+        return _closeCoordinator.CloseAsync(
+            FlushProgressAsync,
+            CancelLoading,
+            CancelAutoHide);
+    }
+
+    public void CancelLoading() => _loadCancellation?.Cancel();
+    public void CancelAutoHide() => _autoHideCancellation?.Cancel();
+
+    partial void OnPaginaAtualChanged(int value)
+    {
+        var pageState = ReaderPresentationLogic.CreatePageState(value, Paginas.Count);
+        if (value != pageState.Index)
+        {
+            PaginaAtual = pageState.Index;
+            return;
+        }
+
+        ApplyPageState(pageState);
+        if (!IsClosing && Paginas.Count > 0)
+            EnfileirarSalvamento(value);
+    }
+
+    partial void OnEstaCarregandoChanged(bool value) => NotifyReaderState();
+    partial void OnTemErroChanged(bool value) => NotifyReaderState();
+    partial void OnSemPaginasChanged(bool value) => NotifyReaderState();
+
+    partial void OnControlesVisiveisChanged(bool value)
+    {
+        OnPropertyChanged(nameof(ControlesOcultos));
+    }
+
+    partial void OnTextoPaginaChanged(string value)
+    {
+        OnPropertyChanged(nameof(DescricaoContador));
+    }
+
+    partial void OnNavegacaoPorToqueAtivadaChanged(bool value)
+    {
+        OnPropertyChanged(nameof(SomenteDeslizarSelecionado));
+        OnPropertyChanged(nameof(DeslizarETocarSelecionado));
+    }
+
+    private bool IsClosing => Volatile.Read(ref _isClosing) != 0;
+
     private async Task CarregarPaginasAsync(CancellationToken cancellationToken)
     {
-        if (Item is null)
+        if (Item is null || IsClosing)
             return;
 
         try
         {
             EstaCarregando = true;
+            TemErro = false;
+            SemPaginas = false;
+            MensagemErro = string.Empty;
 
-            var paginas =
-                await _comicReaderService.LoadPagesAsync(Item, cancellationToken);
-
+            var paginas = await _comicReaderService.LoadPagesAsync(Item, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
+            if (IsClosing)
+                return;
 
             Paginas.Clear();
-
             foreach (var pagina in paginas)
                 Paginas.Add(pagina);
 
-            PaginaAtual = Math.Clamp(
-                Item.CurrentPage,
-                0,
-                Math.Max(0, Paginas.Count - 1));
+            if (Paginas.Count == 0)
+            {
+                SemPaginas = true;
+                MensagemErro = "Nenhuma página válida foi encontrada neste arquivo.";
+                ApplyPageState(ReaderPresentationLogic.CreatePageState(0, 0));
+                return;
+            }
 
-            AtualizarTextoPagina();
+            var initialState = ReaderPresentationLogic.CreatePageState(
+                Item.CurrentPage,
+                Paginas.Count);
+            PaginaAtual = initialState.Index;
+            ApplyPageState(initialState);
         }
         catch (OperationCanceledException)
         {
-            // A página deixou de precisar desta preparação.
+            System.Diagnostics.Debug.WriteLine(
+                $"[ReaderLoad] Preparação cancelada; Formato={Item.Format}; Caminho={Item.FilePath}; " +
+                $"Cancelado={cancellationToken.IsCancellationRequested}; Paginas={Paginas.Count}; " +
+                $"PosicaoInicial={Item.CurrentPage}; Fechando={IsClosing}");
         }
-        catch (Exception ex)
+        catch (FileNotFoundException exception)
         {
-            await Shell.Current.DisplayAlertAsync(
-                "Erro ao abrir leitura",
-                ex.Message,
-                "OK");
-
-            await Shell.Current.GoToAsync("..");
+            LogLoadFailure(exception, cancellationToken);
+            if (!IsClosing)
+            {
+                TemErro = true;
+                MensagemErro = "O arquivo desta obra não foi encontrado.";
+            }
+        }
+        catch (Exception exception)
+        {
+            LogLoadFailure(exception, cancellationToken);
+            if (!IsClosing)
+            {
+                TemErro = true;
+                MensagemErro = "Não foi possível preparar este arquivo para leitura.";
+            }
         }
         finally
         {
-            EstaCarregando = false;
+            if (!IsClosing)
+                EstaCarregando = false;
         }
     }
 
-    partial void OnPaginaAtualChanged(int value)
+    private void ApplyPageState(ReaderPageState state)
     {
-        AtualizarTextoPagina();
-
-        EnfileirarSalvamento(value);
+        TextoPagina = state.CounterText;
+        PodeVoltarPagina = state.CanGoPrevious;
+        PodeAvancarPagina = state.CanGoNext;
+        IndiceMaximo = state.MaximumIndex;
+        ProgressoNormalizado = state.Progress;
+        NotifyReaderState();
     }
 
     private void EnfileirarSalvamento(int pagina)
@@ -115,7 +278,6 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
         _progressCancellation?.Cancel();
         _progressCancellation?.Dispose();
         _progressCancellation = new CancellationTokenSource();
-
         var version = Interlocked.Increment(ref _progressVersion);
         _ = SalvarProgressoSeguroAsync(
             pagina,
@@ -136,7 +298,6 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
                 await Task.Delay(250, cancellationToken);
 
             await _progressLock.WaitAsync(cancellationToken);
-
             try
             {
                 if (version != Volatile.Read(ref _progressVersion) ||
@@ -146,10 +307,11 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
                     return;
                 }
 
-                Item.CurrentPage = pagina;
+                Item.CurrentPage = ReaderPresentationLogic.CreatePageState(
+                    pagina,
+                    Paginas.Count).Index;
                 Item.TotalPages = Paginas.Count;
                 Item.LastReadAt = DateTime.Now;
-
                 await _database.SaveLibraryItemAsync(Item);
             }
             finally
@@ -159,12 +321,12 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
         }
         catch (OperationCanceledException)
         {
-            // Uma posição mais nova substituiu esta.
+            // Uma posição mais nova substituiu esta gravação.
         }
-        catch (Exception ex)
+        catch (Exception exception)
         {
             System.Diagnostics.Debug.WriteLine(
-                $"Não foi possível salvar o progresso: {ex}");
+                $"Não foi possível salvar o progresso: {exception}");
         }
     }
 
@@ -172,7 +334,6 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
     {
         _progressCancellation?.Cancel();
         var version = Interlocked.Increment(ref _progressVersion);
-
         await SalvarProgressoSeguroAsync(
             PaginaAtual,
             version,
@@ -180,48 +341,143 @@ public partial class ReaderViewModel : ObservableObject, IQueryAttributable
             CancellationToken.None);
     }
 
-    public void CancelLoading()
-    {
-        _loadCancellation?.Cancel();
-    }
-
-    private void AtualizarTextoPagina()
-    {
-        TextoPagina = Paginas.Count == 0
-            ? string.Empty
-            : $"{PaginaAtual + 1} / {Paginas.Count}";
-    }
-
-
     [RelayCommand]
     private void AlternarControles()
     {
-        ControlesVisiveis = !ControlesVisiveis;
+        _focusState.ToggleControls();
+        SyncFocusState();
+
+        if (_focusState.ControlsVisible)
+            ScheduleAutoHide();
+        else
+            CancelAutoHide();
+    }
+
+    [RelayCommand]
+    private void AbrirConfiguracoes()
+    {
+        CancelAutoHide();
+        _focusState.OpenSettings();
+        SyncFocusState();
+    }
+
+    [RelayCommand]
+    private void FecharConfiguracoes()
+    {
+        _focusState.CloseSettings();
+        SyncFocusState();
+        ScheduleAutoHide();
+    }
+
+    [RelayCommand]
+    private void SelecionarSomenteDeslizar()
+    {
+        SaveNavigationPreference(false);
+        RegisterInteraction();
+    }
+
+    [RelayCommand]
+    private void SelecionarDeslizarETocar()
+    {
+        SaveNavigationPreference(true);
+        RegisterInteraction();
     }
 
     [RelayCommand]
     private void AvancarPagina()
     {
-        if (Paginas.Count == 0)
+        if (!PodeAvancarPagina || IsClosing)
             return;
 
-        if (PaginaAtual < Paginas.Count - 1)
-            PaginaAtual++;
+        PaginaAtual++;
+        RegisterInteraction();
     }
 
     [RelayCommand]
     private void VoltarPagina()
     {
-        if (Paginas.Count == 0)
+        if (!PodeVoltarPagina || IsClosing)
             return;
 
-        if (PaginaAtual > 0)
-            PaginaAtual--;
+        PaginaAtual--;
+        RegisterInteraction();
     }
 
     [RelayCommand]
     private async Task VoltarAsync()
     {
+        if (Interlocked.Exchange(ref _navigationStarted, 1) != 0)
+            return;
+
+        await CloseAsync();
         await Shell.Current.GoToAsync("..");
+    }
+
+    private void SaveNavigationPreference(bool enabled)
+    {
+        NavegacaoPorToqueAtivada = enabled;
+        try
+        {
+            Preferences.Default.Set(TapNavigationPreferenceKey, enabled);
+        }
+        catch (Exception exception)
+        {
+            System.Diagnostics.Debug.WriteLine(exception);
+        }
+    }
+
+    private void SyncFocusState()
+    {
+        ControlesVisiveis = _focusState.ControlsVisible;
+        ConfiguracoesVisiveis = _focusState.SettingsVisible;
+    }
+
+    private void ScheduleAutoHide()
+    {
+        CancelAutoHide();
+        if (IsClosing || _focusState.SettingsVisible || !_focusState.ControlsVisible)
+            return;
+
+        _autoHideCancellation?.Dispose();
+        _autoHideCancellation = new CancellationTokenSource();
+        _ = AutoHideAsync(_autoHideCancellation.Token);
+    }
+
+    private async Task AutoHideAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(AutoHideDelay, cancellationToken);
+            await MainThread.InvokeOnMainThreadAsync(() =>
+            {
+                if (IsClosing || _focusState.SettingsVisible)
+                    return;
+
+                _focusState.HideControls();
+                SyncFocusState();
+            });
+        }
+        catch (OperationCanceledException)
+        {
+            // Uma interação reiniciou o temporizador.
+        }
+    }
+
+    private void NotifyReaderState()
+    {
+        OnPropertyChanged(nameof(LeituraVisivel));
+    }
+
+    private void LogLoadFailure(
+        Exception exception,
+        CancellationToken cancellationToken)
+    {
+        System.Diagnostics.Debug.WriteLine(
+            $"[ReaderLoad] Tipo={exception.GetType().FullName}; Mensagem={exception.Message}; " +
+            $"StackTrace={exception.StackTrace}; InnerException={exception.InnerException}; " +
+            $"Formato={Item?.Format}; Caminho={Item?.FilePath}; " +
+            $"Cancelado={cancellationToken.IsCancellationRequested}; Paginas={Paginas.Count}; " +
+            $"PosicaoInicial={Item?.CurrentPage}; Fechando={IsClosing}; " +
+            $"CloseCoordinatorAcionado={IsClosing}");
     }
 }

@@ -1,200 +1,203 @@
-using Quadra.App.ViewModels;
 using Quadra.App.Controls;
+using Quadra.App.Services;
+using Quadra.App.ViewModels;
 
 namespace Quadra.App.Pages;
 
 public partial class ReaderPage : ContentPage
 {
-    private const string TapNavigationPreferenceKey =
-        "ReaderTapNavigationEnabled";
+    private static readonly TimeSpan SingleTapDelay = TimeSpan.FromMilliseconds(280);
+    private static readonly TimeSpan SwipeQuietPeriod = TimeSpan.FromMilliseconds(180);
 
     private readonly ReaderViewModel _viewModel;
+    private CancellationTokenSource? _singleTapCancellation;
+    private CancellationTokenSource? _swipeCancellation;
     private bool _isPageZoomed;
-    private bool _tapNavigationEnabled;
+    private bool _isSwipeInProgress;
+    private DateTime _lastDoubleTapAtUtc = DateTime.MinValue;
 
     public ReaderPage(ReaderViewModel viewModel)
     {
         InitializeComponent();
-
         _viewModel = viewModel;
         BindingContext = viewModel;
+    }
 
-        _tapNavigationEnabled = Preferences.Default.Get(
-            TapNavigationPreferenceKey,
-            true);
+    protected override void OnAppearing()
+    {
+        base.OnAppearing();
+        _viewModel.ActivateFocusMode();
     }
 
     protected override async void OnDisappearing()
     {
-        await _viewModel.FlushProgressAsync();
-        _viewModel.CancelLoading();
+        CancelGestureWork();
+        await _viewModel.CloseAsync();
         base.OnDisappearing();
     }
 
-    private void OnReaderTapped(
-    object? sender,
-    TappedEventArgs e)
+    protected override bool OnBackButtonPressed()
     {
-        /*
-         * Enquanto a imagem estiver ampliada, nenhum toque
-         * deve avançar ou voltar a página.
-         */
-        if (_isPageZoomed)
-            return;
+        NavigateBackSafely();
+        return true;
+    }
 
-        var position = e.GetPosition(ReaderCarousel);
+    private async void OnReaderTapped(object? sender, TappedEventArgs e)
+    {
+        _singleTapCancellation?.Cancel();
+        _singleTapCancellation?.Dispose();
+        _singleTapCancellation = new CancellationTokenSource();
+        var cancellationToken = _singleTapCancellation.Token;
 
-        if (position is null ||
-            ReaderCarousel.Width <= 0)
+        try
         {
-            return;
-        }
+            await Task.Delay(SingleTapDelay, cancellationToken);
+            var doubleTapDetected =
+                DateTime.UtcNow - _lastDoubleTapAtUtc < TimeSpan.FromMilliseconds(450);
+            var position = e.GetPosition(ReaderCarousel);
+            if (position is null || ReaderCarousel.Width <= 0)
+                return;
 
-        var touchX = position.Value.X;
-        var width = ReaderCarousel.Width;
+            var action = ReaderPresentationLogic.DecideTap(
+                position.Value.X / ReaderCarousel.Width,
+                _viewModel.NavegacaoPorToqueAtivada,
+                _isPageZoomed,
+                isPanning: _isPageZoomed,
+                _isSwipeInProgress,
+                isDoubleTap: doubleTapDetected);
 
-        var leftLimit = width * 0.30;
-        var rightLimit = width * 0.70;
-
-        if (!_tapNavigationEnabled)
-        {
-            if (touchX > leftLimit &&
-                touchX < rightLimit)
+            switch (action)
             {
-                AlternarControles();
+                case ReaderTapAction.Previous:
+                    GoToPreviousPage();
+                    break;
+                case ReaderTapAction.Next:
+                    GoToNextPage();
+                    break;
+                case ReaderTapAction.ToggleControls:
+                    if (_viewModel.AlternarControlesCommand.CanExecute(null))
+                        _viewModel.AlternarControlesCommand.Execute(null);
+                    break;
             }
-
-            return;
         }
-
-        if (touchX <= leftLimit)
+        catch (OperationCanceledException)
         {
-            VoltarPagina();
-            return;
+            // Um toque duplo ou gesto mais recente assumiu a interação.
         }
-
-        if (touchX >= rightLimit)
-        {
-            AvancarPagina();
-            return;
-        }
-
-        AlternarControles();
     }
 
-    private async void OnReaderSettingsClicked(
-        object? sender,
-        EventArgs e)
+    private void OnZoomDoubleTapDetected(object? sender, EventArgs e)
     {
-        var modoAtual = _tapNavigationEnabled
-            ? "Deslizar e tocar nas laterais"
-            : "Apenas deslizar";
-
-        var escolha =
-            await DisplayActionSheetAsync(
-                $"Navegação atual: {modoAtual}",
-                "Cancelar",
-                null,
-                "Deslizar e tocar nas laterais",
-                "Apenas deslizar");
-
-        switch (escolha)
-        {
-            case "Deslizar e tocar nas laterais":
-                SalvarModoNavegacao(
-                    tapNavigationEnabled: true);
-
-                await DisplayAlertAsync(
-                    "Modo de navegação",
-                    "Agora você pode deslizar ou tocar nas laterais para mudar de página.",
-                    "OK");
-                break;
-
-            case "Apenas deslizar":
-                SalvarModoNavegacao(
-                    tapNavigationEnabled: false);
-
-                await DisplayAlertAsync(
-                    "Modo de navegação",
-                    "Agora as páginas serão alteradas somente ao deslizar.",
-                    "OK");
-                break;
-        }
+        _lastDoubleTapAtUtc = DateTime.UtcNow;
+        _singleTapCancellation?.Cancel();
+        _viewModel.RegisterInteraction();
     }
 
-    private void SalvarModoNavegacao(
-        bool tapNavigationEnabled)
-    {
-        _tapNavigationEnabled =
-            tapNavigationEnabled;
-
-        Preferences.Default.Set(
-            TapNavigationPreferenceKey,
-            tapNavigationEnabled);
-    }
-
-    private void AlternarControles()
-    {
-        if (_viewModel
-            .AlternarControlesCommand
-            .CanExecute(null))
-        {
-            _viewModel
-                .AlternarControlesCommand
-                .Execute(null);
-        }
-    }
-
-    private void VoltarPagina()
-    {
-        if (!_viewModel
-            .VoltarPaginaCommand
-            .CanExecute(null))
-        {
-            return;
-        }
-
-        _viewModel
-            .VoltarPaginaCommand
-            .Execute(null);
-
-        ReaderCarousel.ScrollTo(
-            _viewModel.PaginaAtual,
-            position: ScrollToPosition.Center,
-            animate: true);
-    }
-
-    private void OnZoomStateChanged(
-    object? sender,
-    ZoomStateChangedEventArgs e)
+    private void OnZoomStateChanged(object? sender, ZoomStateChangedEventArgs e)
     {
         _isPageZoomed = e.IsZoomed;
-
-        /*
-         * Enquanto a pinça estiver acontecendo ou a imagem
-         * permanecer ampliada, o CarouselView não pode trocar
-         * de página.
-         */
-        ReaderCarousel.IsSwipeEnabled =
-            !e.IsZoomed;
+        ReaderCarousel.IsSwipeEnabled = !e.IsZoomed;
+        _viewModel.RegisterInteraction();
     }
 
-    private void AvancarPagina()
+    private void OnCarouselScrolled(object? sender, ItemsViewScrolledEventArgs e)
     {
-        if (!_viewModel
-            .AvancarPaginaCommand
-            .CanExecute(null))
-        {
+        _isSwipeInProgress = true;
+        _swipeCancellation?.Cancel();
+        _swipeCancellation?.Dispose();
+        _swipeCancellation = new CancellationTokenSource();
+        _ = ClearSwipeStateAsync(_swipeCancellation.Token);
+    }
+
+    private void OnCarouselPositionChanged(object? sender, PositionChangedEventArgs e)
+    {
+        _isPageZoomed = false;
+        ReaderCarousel.IsSwipeEnabled = true;
+
+        foreach (var visibleView in ReaderCarousel.VisibleViews)
+            FindZoomableImage(visibleView)?.ResetZoom();
+
+        _viewModel.RegisterInteraction();
+    }
+
+    private void OnPreviousClicked(object? sender, EventArgs e) => GoToPreviousPage();
+    private void OnNextClicked(object? sender, EventArgs e) => GoToNextPage();
+
+    private void OnSliderDragCompleted(object? sender, EventArgs e)
+    {
+        if (sender is not Slider slider)
             return;
-        }
 
-        _viewModel
-            .AvancarPaginaCommand
-            .Execute(null);
+        _viewModel.SetPageFromSlider(slider.Value);
+        ReaderCarousel.ScrollTo(
+            _viewModel.PaginaAtual,
+            position: ScrollToPosition.Center,
+            animate: false);
+    }
 
+    private void GoToPreviousPage()
+    {
+        if (!_viewModel.VoltarPaginaCommand.CanExecute(null))
+            return;
+
+        _viewModel.VoltarPaginaCommand.Execute(null);
+        ScrollToCurrentPage();
+    }
+
+    private void GoToNextPage()
+    {
+        if (!_viewModel.AvancarPaginaCommand.CanExecute(null))
+            return;
+
+        _viewModel.AvancarPaginaCommand.Execute(null);
+        ScrollToCurrentPage();
+    }
+
+    private void ScrollToCurrentPage()
+    {
         ReaderCarousel.ScrollTo(
             _viewModel.PaginaAtual,
             position: ScrollToPosition.Center,
             animate: true);
+    }
+
+    private async Task ClearSwipeStateAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            await Task.Delay(SwipeQuietPeriod, cancellationToken);
+            _isSwipeInProgress = false;
+        }
+        catch (OperationCanceledException)
+        {
+            // O Carousel ainda está se movimentando.
+        }
+    }
+
+    private void NavigateBackSafely()
+    {
+        if (_viewModel.VoltarCommand.CanExecute(null))
+            _viewModel.VoltarCommand.Execute(null);
+    }
+
+    private void CancelGestureWork()
+    {
+        _singleTapCancellation?.Cancel();
+        _swipeCancellation?.Cancel();
+    }
+
+    private static ZoomableImage? FindZoomableImage(IVisualTreeElement element)
+    {
+        if (element is ZoomableImage zoomableImage)
+            return zoomableImage;
+
+        foreach (var child in element.GetVisualChildren())
+        {
+            var result = FindZoomableImage(child);
+            if (result is not null)
+                return result;
+        }
+
+        return null;
     }
 }

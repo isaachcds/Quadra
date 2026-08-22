@@ -33,6 +33,8 @@ public class ZoomableImage : ContentView
     public event EventHandler<ZoomStateChangedEventArgs>?
         ZoomStateChanged;
 
+    public event EventHandler? DoubleTapDetected;
+
     public static readonly BindableProperty SourceProperty =
         BindableProperty.Create(
             nameof(Source),
@@ -111,6 +113,8 @@ public class ZoomableImage : ContentView
         object? sender,
         TappedEventArgs e)
     {
+        DoubleTapDetected?.Invoke(this, EventArgs.Empty);
+
         if (IsZoomed())
         {
             ResetZoom();

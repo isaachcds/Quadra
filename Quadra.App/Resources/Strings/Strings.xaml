@@ -53,4 +53,14 @@
     <x:String x:Key="StringNoBooksFound">Nenhuma obra encontrada</x:String>
     <x:String x:Key="StringChangeSearchOrFilters">Tente alterar a pesquisa ou os filtros.</x:String>
     <x:String x:Key="StringShowAll">Mostrar todos</x:String>
+    <x:String x:Key="StringReaderPreparing">Preparando leitura…</x:String>
+    <x:String x:Key="StringReaderSettings">Configurações de leitura</x:String>
+    <x:String x:Key="StringReaderSwipeOnly">Somente deslizar</x:String>
+    <x:String x:Key="StringReaderSwipeAndTap">Deslizar e tocar nas bordas</x:String>
+    <x:String x:Key="StringReaderDoubleTapHelp">Toque duas vezes para ampliar ou restaurar.</x:String>
+    <x:String x:Key="StringReaderPreviousPage">Página anterior</x:String>
+    <x:String x:Key="StringReaderNextPage">Próxima página</x:String>
+    <x:String x:Key="StringReaderNoPages">Nenhuma página válida foi encontrada neste arquivo.</x:String>
+    <x:String x:Key="StringReaderLoadError">Não foi possível preparar este arquivo para leitura.</x:String>
+    <x:String x:Key="StringReaderBack">Voltar para os detalhes</x:String>
 </ResourceDictionary>

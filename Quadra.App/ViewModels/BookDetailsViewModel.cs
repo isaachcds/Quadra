@@ -129,6 +129,9 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
         if (Item is null || !PodeLer)
             return;
 
+        var paginasCarregadas = 0;
+        var etapa = "início";
+
         var leituraConcluida =
             Item.TotalPages > 0 &&
             Item.CurrentPage >= Item.TotalPages - 1;
@@ -157,9 +160,14 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
             _preparationCancellation?.Dispose();
             _preparationCancellation = new CancellationTokenSource();
 
+            etapa = "preparação do formato";
+            LogReaderPreparation(etapa, Item, _preparationCancellation.Token, paginasCarregadas);
+
             var paginas = await _comicReaderService.LoadPagesAsync(
                 Item,
                 _preparationCancellation.Token);
+            paginasCarregadas = paginas.Count;
+            LogReaderPreparation("páginas preparadas", Item, _preparationCancellation.Token, paginasCarregadas);
 
             if (paginas.Count == 0)
             {
@@ -175,9 +183,12 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
             if (Item.CurrentPage < 0 || Item.CurrentPage >= Item.TotalPages)
                 Item.CurrentPage = 0;
 
+            etapa = "gravação do total e posição";
             await _database.SaveLibraryItemAsync(Item);
             AtualizarApresentacao();
 
+            etapa = "navegação para ReaderPage";
+            LogReaderPreparation(etapa, Item, _preparationCancellation.Token, paginasCarregadas);
             await Shell.Current.GoToAsync(
                 nameof(ReaderPage),
                 new Dictionary<string, object> { ["Item"] = Item });
@@ -188,7 +199,12 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
         }
         catch (Exception exception)
         {
-            System.Diagnostics.Debug.WriteLine(exception);
+            LogReaderPreparationFailure(
+                etapa,
+                exception,
+                Item,
+                _preparationCancellation?.Token,
+                paginasCarregadas);
             await Shell.Current.DisplayAlertAsync(
                 "Erro ao preparar leitura",
                 "Não foi possível preparar este arquivo para leitura.",
@@ -294,6 +310,33 @@ public partial class BookDetailsViewModel : ObservableObject, IQueryAttributable
     public void CancelPreparation()
     {
         _preparationCancellation?.Cancel();
+    }
+
+    private static void LogReaderPreparation(
+        string etapa,
+        LibraryItem item,
+        CancellationToken cancellationToken,
+        int paginasCarregadas)
+    {
+        System.Diagnostics.Debug.WriteLine(
+            $"[ReaderOpen] Etapa={etapa}; Formato={item.Format}; " +
+            $"Caminho={item.FilePath}; Cancelado={cancellationToken.IsCancellationRequested}; " +
+            $"Paginas={paginasCarregadas}; PosicaoInicial={item.CurrentPage}");
+    }
+
+    private static void LogReaderPreparationFailure(
+        string etapa,
+        Exception exception,
+        LibraryItem item,
+        CancellationToken? cancellationToken,
+        int paginasCarregadas)
+    {
+        System.Diagnostics.Debug.WriteLine(
+            $"[ReaderOpen] Falha na etapa={etapa}; Tipo={exception.GetType().FullName}; " +
+            $"Mensagem={exception.Message}; Formato={item.Format}; Caminho={item.FilePath}; " +
+            $"Cancelado={cancellationToken?.IsCancellationRequested}; Paginas={paginasCarregadas}; " +
+            $"PosicaoInicial={item.CurrentPage}; InnerException={exception.InnerException}; " +
+            $"StackTrace={exception.StackTrace}");
     }
 
     private void AtualizarApresentacao()
