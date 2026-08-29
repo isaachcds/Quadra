@@ -47,10 +47,11 @@ public static class MauiProgram
 #endif
 
         builder.Services.AddSingleton<AppShell>();
+        builder.Services.AddSingleton<AberturaPage>();
         builder.Services.AddSingleton<QuadraDatabase>();
         builder.Services.AddSingleton<ArmazenamentoBibliotecaService>();
-
         builder.Services.AddSingleton<ImportacaoBibliotecaService>();
+
 #if ANDROID
         builder.Services.AddSingleton<
             IEspacoArmazenamentoService,

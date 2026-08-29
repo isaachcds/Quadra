@@ -9,13 +9,10 @@ public partial class App : Application
     public App(IServiceProvider services)
     {
         InitializeComponent();
+        PreferenciasAplicativo.AplicarTema(this, PreferenciasAplicativo.ObterTema(Preferences.Default));
         _services = services;
     }
 
-    protected override Window CreateWindow(
-        IActivationState? activationState)
-    {
-        return new Window(
-            _services.GetRequiredService<AppShell>());
-    }
+    protected override Window CreateWindow(IActivationState? activationState) =>
+        new(_services.GetRequiredService<Pages.AberturaPage>());
 }
