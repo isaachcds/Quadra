@@ -91,6 +91,7 @@ builder.Services.AddSingleton<
         builder.Services.AddTransient<DetalhesColecaoViewModel>();
         builder.Services.AddTransient<DetalhesColecaoPage>();
         builder.Services.AddTransient<HistoricoPage>();
+        builder.Services.AddTransient<HistoricoViewModel>();
         builder.Services.AddTransient<SettingsPage>();
         builder.Services.AddTransient<ConfiguracoesViewModel>();
 

@@ -3,15 +3,67 @@
     x:Class="Quadra.App.Pages.HistoricoPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:controls="clr-namespace:Quadra.App.Controls"
+    xmlns:vm="clr-namespace:Quadra.App.ViewModels"
+    x:DataType="vm:HistoricoViewModel"
+    AutomationId="HistoryPage"
     BackgroundColor="{AppThemeBinding Light={StaticResource ColorBackgroundLight}, Dark={StaticResource ColorBackgroundDark}}"
     SafeAreaEdges="Container"
     Shell.NavBarIsVisible="False">
-    <Grid Padding="24">
-        <VerticalStackLayout MaximumWidthRequest="440" Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
-            <Image Source="icon_history.svg" WidthRequest="64" HeightRequest="64" SemanticProperties.Description="Histórico" />
-            <Label Text="Histórico" Style="{StaticResource HeadlineMobile}" HorizontalTextAlignment="Center" TextColor="{AppThemeBinding Light={StaticResource ColorTextPrimaryLight}, Dark={StaticResource ColorTextPrimaryDark}}" />
-            <Label Text="Suas leituras recentes aparecerão aqui." Style="{StaticResource SecondaryTextStyle}" HorizontalTextAlignment="Center" />
-            <Label Text="Em breve" Style="{StaticResource LabelMedium}" FontFamily="OpenSansSemibold" HorizontalTextAlignment="Center" TextColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}" />
-        </VerticalStackLayout>
+
+    <Grid RowDefinitions="Auto,*">
+        <Grid MinimumHeightRequest="64" Padding="20,8" ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource SpacingSm}">
+            <Image Source="icon_history.svg" WidthRequest="32" HeightRequest="32" VerticalOptions="Center" SemanticProperties.Description="{StaticResource StringHistory}" />
+            <Label Grid.Column="1" Text="{StaticResource StringHistory}" Style="{StaticResource HeadlineMobile}" VerticalOptions="Center" />
+        </Grid>
+
+        <Grid Grid.Row="1" Padding="20,0">
+            <CollectionView ItemsSource="{Binding Itens}" SelectionMode="None" AutomationId="HistoryList">
+                <CollectionView.Header>
+                    <Label Text="Leituras recentes" Style="{StaticResource LabelSmall}" CharacterSpacing="1.2" TextTransform="Uppercase" TextColor="{AppThemeBinding Light={StaticResource ColorTextSecondaryLight}, Dark={StaticResource ColorTextSecondaryDark}}" Margin="0,16,0,16" />
+                </CollectionView.Header>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ItemHistorico">
+                        <Border Margin="0,0,0,12" Padding="{StaticResource SpacingSm}" Style="{StaticResource CardBorderStyle}">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusLarge}" /></Border.StrokeShape>
+                            <Border.GestureRecognizers><TapGestureRecognizer Tapped="OnAbrir" /></Border.GestureRecognizers>
+                            <Grid ColumnDefinitions="64,*,Auto" ColumnSpacing="{StaticResource SpacingMd}">
+                                <controls:CapaObraView
+                                    HeightRequest="96"
+                                    CaminhoCapa="{Binding Obra.CoverPath}"
+                                    PossuiCapa="{Binding PossuiCapa}"
+                                    Formato="{Binding Formato}"
+                                    DescricaoCapa="{Binding DescricaoCapa}" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="{StaticResource SpacingXs}" VerticalOptions="Center">
+                                    <Label Text="{Binding Obra.Title}" Style="{StaticResource BodyTextStyle}" FontFamily="OpenSansSemibold" MaxLines="2" LineBreakMode="TailTruncation" />
+                                    <Label Text="{Binding UltimaLeitura}" Style="{StaticResource SecondaryTextStyle}" />
+                                    <Label Text="{Binding TextoProgresso}" Style="{StaticResource SecondaryTextStyle}" MaxLines="1" LineBreakMode="TailTruncation" />
+                                    <ProgressBar Progress="{Binding Progresso.Percentual}" Style="{StaticResource ProgressBarStyle}" HeightRequest="4" />
+                                </VerticalStackLayout>
+                                <Button
+                                    Grid.Column="2"
+                                    Text="{Binding TextoAcaoLeitura}"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Padding="12,8"
+                                    Clicked="OnContinuar"
+                                    CommandParameter="{Binding}"
+                                    VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout MaximumWidthRequest="360" Padding="{StaticResource SpacingLg}" Spacing="{StaticResource SpacingMd}" HorizontalOptions="Center" VerticalOptions="Center">
+                        <Border WidthRequest="112" HeightRequest="112" Style="{StaticResource CardBorderStyle}" HorizontalOptions="Center">
+                            <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusExtraLarge}" /></Border.StrokeShape>
+                            <Image Source="icon_history.svg" WidthRequest="56" HeightRequest="56" />
+                        </Border>
+                        <Label Text="Nenhuma leitura ainda" Style="{StaticResource HeadlineMedium}" HorizontalTextAlignment="Center" />
+                        <Label Text="As obras lidas aparecerão aqui quando você iniciar uma leitura." Style="{StaticResource SecondaryTextStyle}" HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.Footer><BoxView HeightRequest="96" BackgroundColor="Transparent" /></CollectionView.Footer>
+            </CollectionView>
+        </Grid>
     </Grid>
 </ContentPage>
