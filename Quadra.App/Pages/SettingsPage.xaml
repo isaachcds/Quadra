@@ -3,15 +3,108 @@
     x:Class="Quadra.App.Pages.SettingsPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:vm="clr-namespace:Quadra.App.ViewModels"
+    x:DataType="vm:ConfiguracoesViewModel"
+    AutomationId="SettingsPage"
     BackgroundColor="{AppThemeBinding Light={StaticResource ColorBackgroundLight}, Dark={StaticResource ColorBackgroundDark}}"
     SafeAreaEdges="Container"
     Shell.NavBarIsVisible="False">
-    <Grid Padding="24">
-        <VerticalStackLayout MaximumWidthRequest="440" Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
-            <Image Source="icon_settings.svg" WidthRequest="64" HeightRequest="64" SemanticProperties.Description="Configurações" />
-            <Label Text="Configurações" Style="{StaticResource HeadlineMobile}" HorizontalTextAlignment="Center" TextColor="{AppThemeBinding Light={StaticResource ColorTextPrimaryLight}, Dark={StaticResource ColorTextPrimaryDark}}" />
-            <Label x:Name="VersionLabel" Style="{StaticResource BodyTextStyle}" HorizontalTextAlignment="Center" />
-            <Label Text="Novas opções serão adicionadas gradualmente." Style="{StaticResource SecondaryTextStyle}" HorizontalTextAlignment="Center" />
-        </VerticalStackLayout>
+
+    <Grid RowDefinitions="Auto,*">
+        <Grid MinimumHeightRequest="64" Padding="20,8" ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource SpacingSm}">
+            <Image Source="icon_settings.svg" WidthRequest="32" HeightRequest="32" VerticalOptions="Center" SemanticProperties.Description="{StaticResource StringSettings}" />
+            <Label Grid.Column="1" Text="{StaticResource StringSettings}" Style="{StaticResource HeadlineMobile}" VerticalOptions="Center" />
+        </Grid>
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Padding="20,16,20,40" MaximumWidthRequest="640" HorizontalOptions="Center" Spacing="{StaticResource SpacingLg}">
+                <VerticalStackLayout Spacing="{StaticResource SpacingSm}">
+                    <Label Text="Aparência" Style="{StaticResource LabelSmall}" CharacterSpacing="1.2" TextTransform="Uppercase" TextColor="{AppThemeBinding Light={StaticResource ColorTextSecondaryLight}, Dark={StaticResource ColorTextSecondaryDark}}" />
+                    <Border Style="{StaticResource CardBorderStyle}" Padding="{StaticResource SpacingMd}">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusLarge}" /></Border.StrokeShape>
+                        <VerticalStackLayout Spacing="{StaticResource SpacingMd}">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource SpacingMd}">
+                                <Image Source="icon_settings.svg" WidthRequest="32" HeightRequest="32" VerticalOptions="Center" />
+                                <VerticalStackLayout Grid.Column="1" Spacing="{StaticResource SpacingXs}">
+                                    <Label Text="Tema do aplicativo" Style="{StaticResource BodyTextStyle}" FontFamily="OpenSansSemibold" />
+                                    <Label Text="Use o sistema ou escolha um tema." Style="{StaticResource SecondaryTextStyle}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                            <Grid ColumnDefinitions="*,*,*" ColumnSpacing="{StaticResource SpacingSm}">
+                                <Button Text="Sistema" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnTemaSistema">
+                                    <Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding TemaSistemaSelecionado}" Value="True"><Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" /></DataTrigger></Button.Triggers>
+                                </Button>
+                                <Button Grid.Column="1" Text="Claro" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnTemaClaro">
+                                    <Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding TemaClaroSelecionado}" Value="True"><Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" /></DataTrigger></Button.Triggers>
+                                </Button>
+                                <Button Grid.Column="2" Text="Escuro" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnTemaEscuro">
+                                    <Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding TemaEscuroSelecionado}" Value="True"><Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" /></DataTrigger></Button.Triggers>
+                                </Button>
+                            </Grid>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="{StaticResource SpacingSm}">
+                    <Label Text="{StaticResource StringLibrary}" Style="{StaticResource LabelSmall}" CharacterSpacing="1.2" TextTransform="Uppercase" TextColor="{AppThemeBinding Light={StaticResource ColorTextSecondaryLight}, Dark={StaticResource ColorTextSecondaryDark}}" />
+                    <Border Style="{StaticResource CardBorderStyle}" Padding="{StaticResource SpacingMd}">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusLarge}" /></Border.StrokeShape>
+                        <VerticalStackLayout Spacing="{StaticResource SpacingSm}">
+                            <Label Text="Ordenação padrão" Style="{StaticResource BodyTextStyle}" FontFamily="OpenSansSemibold" />
+                            <Picker Title="{StaticResource StringSortBy}" SelectedIndex="{Binding IndiceOrdenacaoBiblioteca}">
+                                <Picker.Items><x:String>Importados recentemente</x:String><x:String>Última leitura</x:String><x:String>Título A–Z</x:String><x:String>Título Z–A</x:String><x:String>Menor progresso</x:String><x:String>Maior progresso</x:String></Picker.Items>
+                            </Picker>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="{StaticResource SpacingSm}">
+                    <Label Text="Leitura" Style="{StaticResource LabelSmall}" CharacterSpacing="1.2" TextTransform="Uppercase" TextColor="{AppThemeBinding Light={StaticResource ColorTextSecondaryLight}, Dark={StaticResource ColorTextSecondaryDark}}" />
+                    <Border Style="{StaticResource CardBorderStyle}" Padding="{StaticResource SpacingMd}">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusLarge}" /></Border.StrokeShape>
+                        <VerticalStackLayout Spacing="{StaticResource SpacingMd}">
+                            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource SpacingMd}">
+                                <VerticalStackLayout Spacing="{StaticResource SpacingXs}">
+                                    <Label Text="Navegar pelas bordas" Style="{StaticResource BodyTextStyle}" FontFamily="OpenSansSemibold" />
+                                    <Label Text="Permite tocar nas laterais em CBR, CBZ e PDF." Style="{StaticResource SecondaryTextStyle}" />
+                                </VerticalStackLayout>
+                                <Switch Grid.Column="1" IsToggled="{Binding NavegacaoPorToqueAtivada}" VerticalOptions="Center" />
+                            </Grid>
+                            <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource ColorOutlineMutedLight}, Dark={StaticResource ColorOutlineMutedDark}}" />
+                            <VerticalStackLayout Spacing="{StaticResource SpacingXs}">
+                                <Label Text="Preferências EPUB" Style="{StaticResource BodyTextStyle}" FontFamily="OpenSansSemibold" />
+                                <Label Text="{Binding ResumoAparenciaEpub}" Style="{StaticResource SecondaryTextStyle}" />
+                            </VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="{StaticResource SpacingSm}">
+                    <Label Text="Armazenamento" Style="{StaticResource LabelSmall}" CharacterSpacing="1.2" TextTransform="Uppercase" TextColor="{AppThemeBinding Light={StaticResource ColorTextSecondaryLight}, Dark={StaticResource ColorTextSecondaryDark}}" />
+                    <Border Style="{StaticResource CardBorderStyle}" Padding="{StaticResource SpacingMd}">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusLarge}" /></Border.StrokeShape>
+                        <VerticalStackLayout Spacing="{StaticResource SpacingMd}">
+                            <Grid ColumnDefinitions="*,Auto"><Label Text="Biblioteca" Style="{StaticResource SecondaryTextStyle}" /><Label Grid.Column="1" Text="{Binding TextoBiblioteca}" Style="{StaticResource BodyTextStyle}" /></Grid>
+                            <Grid ColumnDefinitions="*,Auto"><Label Text="Cache" Style="{StaticResource SecondaryTextStyle}" /><Label Grid.Column="1" Text="{Binding TextoCache}" Style="{StaticResource BodyTextStyle}" /></Grid>
+                            <Grid ColumnDefinitions="*,Auto"><Label Text="Espaço disponível" Style="{StaticResource SecondaryTextStyle}" /><Label Grid.Column="1" Text="{Binding TextoEspacoDisponivel}" Style="{StaticResource BodyTextStyle}" /></Grid>
+                            <Button Text="Limpar cache" Style="{StaticResource SecondaryButtonStyle}" IsEnabled="{Binding PodeLimparCache}" Clicked="OnLimparCacheClicked" />
+                            <ActivityIndicator IsVisible="{Binding EstaAtualizandoArmazenamento}" IsRunning="{Binding EstaAtualizandoArmazenamento}" />
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+
+                <VerticalStackLayout Spacing="{StaticResource SpacingSm}">
+                    <Label Text="Privacidade e sobre" Style="{StaticResource LabelSmall}" CharacterSpacing="1.2" TextTransform="Uppercase" TextColor="{AppThemeBinding Light={StaticResource ColorTextSecondaryLight}, Dark={StaticResource ColorTextSecondaryDark}}" />
+                    <Border Style="{StaticResource CardBorderStyle}" Padding="{StaticResource SpacingMd}">
+                        <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusLarge}" /></Border.StrokeShape>
+                        <VerticalStackLayout Spacing="{StaticResource SpacingMd}">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource SpacingMd}"><Image Source="icon_info.svg" WidthRequest="28" HeightRequest="28" VerticalOptions="Start" /><VerticalStackLayout Grid.Column="1" Spacing="{StaticResource SpacingXs}"><Label Text="Privacidade local" Style="{StaticResource BodyTextStyle}" FontFamily="OpenSansSemibold" /><Label Text="Processamento e arquivos permanecem neste dispositivo. Nenhum dado é enviado a servidores." Style="{StaticResource SecondaryTextStyle}" /></VerticalStackLayout></Grid>
+                            <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource ColorOutlineMutedLight}, Dark={StaticResource ColorOutlineMutedDark}}" />
+                            <VerticalStackLayout Spacing="{StaticResource SpacingXs}"><Label Text="Quadra" Style="{StaticResource BodyTextStyle}" FontFamily="OpenSansSemibold" /><Label Text="Leitura offline de CBR, CBZ, PDF e EPUB." Style="{StaticResource SecondaryTextStyle}" /></VerticalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
     </Grid>
 </ContentPage>

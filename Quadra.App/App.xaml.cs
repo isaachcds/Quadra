@@ -1,4 +1,6 @@
-﻿namespace Quadra.App;
+using Quadra.App.Presentation;
+
+namespace Quadra.App;
 
 public partial class App : Application
 {

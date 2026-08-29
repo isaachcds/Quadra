@@ -82,6 +82,7 @@ builder.Services.AddSingleton<
             LeitorEpubService>();
 
         builder.Services.AddSingleton<LimpezaBibliotecaService>();
+        builder.Services.AddSingleton<DiagnosticoArmazenamentoService>();
 
         builder.Services.AddTransient<BibliotecaViewModel>();
         builder.Services.AddTransient<BibliotecaPage>();
@@ -91,6 +92,7 @@ builder.Services.AddSingleton<
         builder.Services.AddTransient<DetalhesColecaoPage>();
         builder.Services.AddTransient<HistoricoPage>();
         builder.Services.AddTransient<SettingsPage>();
+        builder.Services.AddTransient<ConfiguracoesViewModel>();
 
         builder.Services.AddTransient<DetalhesObraViewModel>();
         builder.Services.AddTransient<DetalhesObraPage>();
