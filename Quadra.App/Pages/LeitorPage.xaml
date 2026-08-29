@@ -29,39 +29,17 @@
             <CarouselView.ItemTemplate>
                 <DataTemplate x:DataType="models:ComicPage">
                     <Grid BackgroundColor="{StaticResource LeitorBackground}">
-                        <Grid.GestureRecognizers>
-                            <TapGestureRecognizer
-                                NumberOfTapsRequired="1"
-                                Tapped="OnLeitorTapped" />
-                        </Grid.GestureRecognizers>
                         <controls:ZoomableImage
                             Source="{Binding FilePath}"
                             HorizontalOptions="Fill"
                             VerticalOptions="Fill"
+                            SingleTapDetected="OnLeitorTapped"
                             DoubleTapDetected="OnZoomDoubleTapDetected"
                             ZoomStateChanged="OnZoomStateChanged" />
                     </Grid>
                 </DataTemplate>
             </CarouselView.ItemTemplate>
         </CarouselView>
-
-        <Grid
-            IsVisible="{Binding LeituraVisivel}"
-            InputTransparent="True"
-            ColumnDefinitions="0.3*,0.4*,0.3*"
-            ZIndex="1">
-            <Grid
-                AutomationId="ReaderLeftTapZone"
-                SemanticProperties.Description="Zona esquerda para página anterior" />
-            <Grid
-                Grid.Column="1"
-                AutomationId="ReaderCenterTapZone"
-                SemanticProperties.Description="Zona central para mostrar ou ocultar controles" />
-            <Grid
-                Grid.Column="2"
-                AutomationId="ReaderRightTapZone"
-                SemanticProperties.Description="Zona direita para próxima página" />
-        </Grid>
 
         <Border
             AutomationId="ReaderTopOverlay"
@@ -90,14 +68,19 @@
                     VerticalOptions="Center"
                     MaxLines="1"
                     LineBreakMode="TailTruncation" />
-                <Label
+                <Border
                     Grid.Column="2"
-                    AutomationId="ReaderPageCounter"
-                    Text="{Binding TextoPagina}"
-                    Style="{StaticResource LabelSmall}"
-                    TextColor="{StaticResource LeitorTextSecondary}"
+                    Padding="10,6"
+                    BackgroundColor="{StaticResource LeitorControlSurface}"
                     VerticalOptions="Center"
-                    SemanticProperties.Description="{Binding DescricaoContador}" />
+                    SemanticProperties.Description="{Binding DescricaoContador}">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusPill}" /></Border.StrokeShape>
+                    <Label
+                        AutomationId="ReaderPageCounter"
+                        Text="{Binding TextoPagina}"
+                        Style="{StaticResource LabelSmall}"
+                        TextColor="{StaticResource LeitorProgress}" />
+                </Border>
                 <ImageButton
                     Grid.Column="3"
                     AutomationId="ReaderSettingsButton"
@@ -130,20 +113,22 @@
                     ThumbColor="{StaticResource LeitorProgress}"
                     DragCompleted="OnSliderDragCompleted"
                     SemanticProperties.Description="Navegar diretamente para uma página" />
-                <Grid
-                    Grid.Row="1"
-                    ColumnDefinitions="Auto,*,Auto"
-                    ColumnSpacing="12">
-                    <ImageButton
-                        AutomationId="ReaderPreviousButton"
-                        Source="icon_back.svg"
-                        WidthRequest="48"
-                        HeightRequest="48"
-                        Padding="12"
-                        BackgroundColor="{StaticResource LeitorControlSurface}"
-                        IsEnabled="{Binding PodeVoltarPagina}"
-                        Clicked="OnPreviousClicked"
-                        SemanticProperties.Description="{StaticResource StringReaderPreviousPage}" />
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource SpacingMd}">
+                    <VerticalStackLayout Spacing="{StaticResource SpacingXs}" HorizontalOptions="Center">
+                        <ImageButton
+                            AutomationId="ReaderPreviousButton"
+                            Source="icon_back.svg"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            Padding="12"
+                            BackgroundColor="{StaticResource LeitorControlSurface}"
+                            IsEnabled="{Binding PodeVoltarPagina}"
+                            Clicked="OnPreviousClicked"
+                            SemanticProperties.Description="{StaticResource StringReaderPreviousPage}">
+                            <ImageButton.Triggers><DataTrigger TargetType="ImageButton" Binding="{Binding PodeVoltarPagina}" Value="False"><Setter Property="Opacity" Value="0.38" /></DataTrigger></ImageButton.Triggers>
+                        </ImageButton>
+                        <Label Text="Anterior" Style="{StaticResource LabelSmall}" TextColor="{StaticResource LeitorTextSecondary}" HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
                     <Label
                         Grid.Column="1"
                         Text="{Binding TextoPagina}"
@@ -152,17 +137,21 @@
                         HorizontalTextAlignment="Center"
                         VerticalOptions="Center"
                         SemanticProperties.Description="{Binding DescricaoContador}" />
-                    <ImageButton
-                        Grid.Column="2"
-                        AutomationId="ReaderNextButton"
-                        Source="icon_forward.svg"
-                        WidthRequest="48"
-                        HeightRequest="48"
-                        Padding="12"
-                        BackgroundColor="{StaticResource LeitorControlSurface}"
-                        IsEnabled="{Binding PodeAvancarPagina}"
-                        Clicked="OnNextClicked"
-                        SemanticProperties.Description="{StaticResource StringReaderNextPage}" />
+                    <VerticalStackLayout Grid.Column="2" Spacing="{StaticResource SpacingXs}" HorizontalOptions="Center">
+                        <ImageButton
+                            AutomationId="ReaderNextButton"
+                            Source="icon_forward.svg"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            Padding="12"
+                            BackgroundColor="{StaticResource LeitorControlSurface}"
+                            IsEnabled="{Binding PodeAvancarPagina}"
+                            Clicked="OnNextClicked"
+                            SemanticProperties.Description="{StaticResource StringReaderNextPage}">
+                            <ImageButton.Triggers><DataTrigger TargetType="ImageButton" Binding="{Binding PodeAvancarPagina}" Value="False"><Setter Property="Opacity" Value="0.38" /></DataTrigger></ImageButton.Triggers>
+                        </ImageButton>
+                        <Label Text="Próximo" Style="{StaticResource LabelSmall}" TextColor="{StaticResource LeitorTextSecondary}" HorizontalTextAlignment="Center" />
+                    </VerticalStackLayout>
                 </Grid>
             </Grid>
         </Border>

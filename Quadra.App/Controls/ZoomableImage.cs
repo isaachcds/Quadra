@@ -35,6 +35,8 @@ public class ZoomableImage : ContentView
 
     public event EventHandler? DoubleTapDetected;
 
+    public event EventHandler<TappedEventArgs>? SingleTapDetected;
+
     public static readonly BindableProperty SourceProperty =
         BindableProperty.Create(
             nameof(Source),
@@ -76,11 +78,19 @@ public class ZoomableImage : ContentView
 
         doubleTapGesture.Tapped += OnDoubleTapped;
 
+        var singleTapGesture = new TapGestureRecognizer
+        {
+            NumberOfTapsRequired = 1
+        };
+
+        singleTapGesture.Tapped += OnSingleTapped;
+
         /*
          * O gesto de pan não é adicionado inicialmente.
          * Em escala normal, o movimento horizontal pertence
          * somente ao CarouselView.
          */
+        GestureRecognizers.Add(singleTapGesture);
         GestureRecognizers.Add(doubleTapGesture);
 
         Content = _image;
@@ -107,6 +117,13 @@ public class ZoomableImage : ContentView
          */
         control.ResetZoom(
             notifyZoomState: false);
+    }
+
+    private void OnSingleTapped(
+        object? sender,
+        TappedEventArgs e)
+    {
+        SingleTapDetected?.Invoke(this, e);
     }
 
     private void OnDoubleTapped(

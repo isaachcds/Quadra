@@ -11,7 +11,7 @@ namespace Quadra.App.ViewModels;
 public partial class LeitorViewModel : ObservableObject, IQueryAttributable
 {
     private const string ChavePreferenciaNavegacaoToque = "ReaderTapNavigationEnabled";
-    private static readonly TimeSpan AutoHideDelay = TimeSpan.FromSeconds(4);
+    private static readonly TimeSpan AutoHideDelay = TimeSpan.FromSeconds(6);
 
     private readonly LeitorQuadrinhosService _leitorQuadrinhosService;
     private readonly QuadraDatabase _database;
@@ -123,7 +123,7 @@ public partial class LeitorViewModel : ObservableObject, IQueryAttributable
 
         _focusState.ExibirControles();
         SyncFocusState();
-        ScheduleAutoHide();
+        CancelarOcultacaoAutomatica();
     }
 
     public void RegistrarInteracao()
@@ -138,6 +138,18 @@ public partial class LeitorViewModel : ObservableObject, IQueryAttributable
             ScheduleAutoHide();
     }
 
+    public void RenovarOcultacaoAutomaticaSeControlesVisiveis()
+    {
+        if (IsClosing ||
+            _focusState.ConfiguracoesVisiveis ||
+            !_focusState.ControlesVisiveis)
+        {
+            return;
+        }
+
+        ScheduleAutoHide();
+    }
+
     public void DefinirPaginaPeloSlider(double sliderValue)
     {
         if (Paginas.Count == 0 || IsClosing)
@@ -146,7 +158,6 @@ public partial class LeitorViewModel : ObservableObject, IQueryAttributable
         PaginaAtual = LogicaApresentacaoLeitor.CriarEstadoPagina(
             (int)Math.Round(sliderValue),
             Paginas.Count).Indice;
-        RegistrarInteracao();
     }
 
     public Task FecharAsync()
@@ -175,7 +186,12 @@ public partial class LeitorViewModel : ObservableObject, IQueryAttributable
             EnfileirarSalvamento(value);
     }
 
-    partial void OnEstaCarregandoChanged(bool value) => NotificarEstadoLeitor();
+    partial void OnEstaCarregandoChanged(bool value)
+    {
+        NotificarEstadoLeitor();
+        if (!value && LeituraVisivel && ControlesVisiveis)
+            ScheduleAutoHide();
+    }
     partial void OnTemErroChanged(bool value) => NotificarEstadoLeitor();
     partial void OnSemPaginasChanged(bool value) => NotificarEstadoLeitor();
 
@@ -391,7 +407,6 @@ public partial class LeitorViewModel : ObservableObject, IQueryAttributable
             return;
 
         PaginaAtual++;
-        RegistrarInteracao();
     }
 
     [RelayCommand]
@@ -401,7 +416,6 @@ public partial class LeitorViewModel : ObservableObject, IQueryAttributable
             return;
 
         PaginaAtual--;
-        RegistrarInteracao();
     }
 
     [RelayCommand]

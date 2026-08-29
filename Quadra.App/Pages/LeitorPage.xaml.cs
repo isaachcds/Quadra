@@ -90,14 +90,12 @@ public partial class LeitorPage : ContentPage
     {
         _lastDoubleTapAtUtc = DateTime.UtcNow;
         _singleTapCancellation?.Cancel();
-        _viewModel.RegistrarInteracao();
     }
 
     private void OnZoomStateChanged(object? sender, ZoomStateChangedEventArgs e)
     {
         _isPageZoomed = e.IsZoomed;
         CarrosselLeitor.IsSwipeEnabled = !e.IsZoomed;
-        _viewModel.RegistrarInteracao();
     }
 
     private void OnCarouselScrolled(object? sender, ItemsViewScrolledEventArgs e)
@@ -116,12 +114,19 @@ public partial class LeitorPage : ContentPage
 
         foreach (var visibleView in CarrosselLeitor.VisibleViews)
             FindZoomableImage(visibleView)?.ResetZoom();
-
-        _viewModel.RegistrarInteracao();
     }
 
-    private void OnPreviousClicked(object? sender, EventArgs e) => GoToPreviousPage();
-    private void OnNextClicked(object? sender, EventArgs e) => GoToNextPage();
+    private void OnPreviousClicked(object? sender, EventArgs e)
+    {
+        _viewModel.RenovarOcultacaoAutomaticaSeControlesVisiveis();
+        GoToPreviousPage();
+    }
+
+    private void OnNextClicked(object? sender, EventArgs e)
+    {
+        _viewModel.RenovarOcultacaoAutomaticaSeControlesVisiveis();
+        GoToNextPage();
+    }
 
     private void OnSliderDragCompleted(object? sender, EventArgs e)
     {
@@ -129,6 +134,7 @@ public partial class LeitorPage : ContentPage
             return;
 
         _viewModel.DefinirPaginaPeloSlider(slider.Value);
+        _viewModel.RenovarOcultacaoAutomaticaSeControlesVisiveis();
         CarrosselLeitor.ScrollTo(
             _viewModel.PaginaAtual,
             position: ScrollToPosition.Center,
