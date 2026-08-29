@@ -63,6 +63,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<
             ILeitorPdfService,
             LeitorPdfService>();
+        builder.Services.AddSingleton<AbrirComAndroidService>();
 #else
 builder.Services.AddSingleton<
     IEspacoArmazenamentoService,
