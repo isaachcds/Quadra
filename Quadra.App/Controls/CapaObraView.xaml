@@ -42,7 +42,7 @@
                 <Label
                     Text="{Binding Formato, Source={x:Reference Root}}"
                     Style="{StaticResource LabelSmall}"
-                    TextColor="{AppThemeBinding Light={StaticResource ColorAccentOnPrimaryDark}, Dark={StaticResource ColorAccentOnPrimaryDark}}" />
+                    TextColor="{AppThemeBinding Light={StaticResource ColorAccentOnPrimaryLight}, Dark={StaticResource ColorAccentOnPrimaryDark}}" />
             </Border>
         </Grid>
     </Border>

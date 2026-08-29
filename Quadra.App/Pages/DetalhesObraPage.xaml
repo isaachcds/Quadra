@@ -15,7 +15,8 @@
     <Grid RowDefinitions="Auto,*">
         <Grid
             Grid.Row="0"
-            Padding="20,10"
+            MinimumHeightRequest="64"
+            Padding="20,8"
             ColumnDefinitions="Auto,*,Auto"
             ColumnSpacing="{StaticResource SpacingSm}"
             BackgroundColor="{AppThemeBinding Light={StaticResource ColorSurfaceLowLight}, Dark={StaticResource ColorSurfaceLowDark}}">
@@ -102,12 +103,14 @@
                     <Border.StrokeShape>
                         <RoundRectangle CornerRadius="{StaticResource RadiusLarge}" />
                     </Border.StrokeShape>
-                    <VerticalStackLayout Spacing="12">
+                    <VerticalStackLayout Spacing="{StaticResource SpacingMd}">
                         <Grid ColumnDefinitions="*,Auto">
                             <Label
                                 Text="{StaticResource StringCurrentReading}"
-                                Style="{StaticResource BodyTextStyle}"
-                                FontFamily="OpenSansSemibold" />
+                                Style="{StaticResource LabelSmall}"
+                                CharacterSpacing="1.2"
+                                TextTransform="Uppercase"
+                                TextColor="{AppThemeBinding Light={StaticResource ColorTextSecondaryLight}, Dark={StaticResource ColorTextSecondaryDark}}" />
                             <Label
                                 Grid.Column="1"
                                 Text="{Binding TextoPercentualProgresso}"
@@ -117,7 +120,7 @@
                         <ProgressBar
                             Progress="{Binding PercentualProgresso}"
                             Style="{StaticResource ProgressBarStyle}"
-                            HeightRequest="6" />
+                            HeightRequest="4" />
                         <Grid ColumnDefinitions="*,Auto">
                             <Label
                                 Text="{Binding TextoEstadoProgresso}"
@@ -165,7 +168,9 @@
                             SemanticProperties.Description="Informações do arquivo" />
                         <Label
                             Text="{StaticResource StringAboutFile}"
-                            Style="{StaticResource SectionTitleStyle}"
+                            Style="{StaticResource LabelSmall}"
+                            CharacterSpacing="1.2"
+                            TextTransform="Uppercase"
                             VerticalOptions="Center" />
                     </HorizontalStackLayout>
                     <Border Style="{StaticResource CardBorderStyle}" Padding="{StaticResource SpacingMd}">

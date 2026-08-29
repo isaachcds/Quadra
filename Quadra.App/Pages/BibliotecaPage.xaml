@@ -15,15 +15,17 @@
     Shell.TabBarIsVisible="True">
 
     <Grid RowDefinitions="Auto,*">
-        <Grid Padding="20,12,20,8">
+        <Grid
+            MinimumHeightRequest="64"
+            Padding="20,8">
             <Grid
                 IsVisible="{Binding CabecalhoPadraoVisivel}"
                 ColumnDefinitions="Auto,*,Auto,Auto"
                 ColumnSpacing="{StaticResource SpacingSm}">
                 <Image
                     Source="quadra_mark.svg"
-                    WidthRequest="40"
-                    HeightRequest="40"
+                    WidthRequest="32"
+                    HeightRequest="32"
                     SemanticProperties.Description="Símbolo do Quadra"
                     VerticalOptions="Center" />
                 <Label
@@ -113,8 +115,13 @@
             <VerticalStackLayout
                 IsVisible="{Binding PossuiContinuarLendo}"
                 Spacing="{StaticResource SpacingSm}"
-                Margin="0,8,0,16">
-                <Label Text="Continuar lendo" Style="{StaticResource SectionTitleStyle}" />
+                Margin="0,16,0,24">
+                <Label
+                    Text="Continuar lendo"
+                    Style="{StaticResource LabelSmall}"
+                    CharacterSpacing="1.2"
+                    TextTransform="Uppercase"
+                    TextColor="{AppThemeBinding Light={StaticResource ColorTextSecondaryLight}, Dark={StaticResource ColorTextSecondaryDark}}" />
                 <controls:CartaoContinuarLeitura
                     Obra="{Binding ContinuarLendo}"
                     AbrirCommand="{Binding AbrirDetalhesCommand}" />
@@ -124,7 +131,7 @@
                 Grid.Row="1"
                 Orientation="Horizontal"
                 HorizontalScrollBarVisibility="Never"
-                Margin="0,0,0,16">
+                Margin="0,0,0,24">
                 <HorizontalStackLayout Spacing="{StaticResource SpacingSm}">
                     <Button
                         AutomationId="FormatFilterAll"
@@ -136,7 +143,7 @@
                         <Button.Triggers>
                             <DataTrigger TargetType="Button" Binding="{Binding FiltroTodosSelecionado}" Value="True">
                                 <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
-                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource ColorAccentOnPrimaryLight}, Dark={StaticResource ColorAccentOnPrimaryDark}}" />
                             </DataTrigger>
                         </Button.Triggers>
                     </Button>
@@ -150,7 +157,7 @@
                         <Button.Triggers>
                             <DataTrigger TargetType="Button" Binding="{Binding FiltroEpubSelecionado}" Value="True">
                                 <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
-                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource ColorAccentOnPrimaryLight}, Dark={StaticResource ColorAccentOnPrimaryDark}}" />
                             </DataTrigger>
                         </Button.Triggers>
                     </Button>
@@ -164,7 +171,7 @@
                         <Button.Triggers>
                             <DataTrigger TargetType="Button" Binding="{Binding FiltroPdfSelecionado}" Value="True">
                                 <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
-                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource ColorAccentOnPrimaryLight}, Dark={StaticResource ColorAccentOnPrimaryDark}}" />
                             </DataTrigger>
                         </Button.Triggers>
                     </Button>
@@ -178,7 +185,7 @@
                         <Button.Triggers>
                             <DataTrigger TargetType="Button" Binding="{Binding FiltroComicsSelecionado}" Value="True">
                                 <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource ColorAccentPrimaryMutedLight}, Dark={StaticResource ColorAccentPrimaryMutedDark}}" />
-                                <Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" />
+                                <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource ColorAccentOnPrimaryLight}, Dark={StaticResource ColorAccentOnPrimaryDark}}" />
                             </DataTrigger>
                         </Button.Triggers>
                     </Button>
@@ -195,9 +202,9 @@
                 <CollectionView.ItemsLayout>
                     <GridItemsLayout
                         Orientation="Vertical"
-                        Span="2"
-                        HorizontalItemSpacing="16"
-                        VerticalItemSpacing="24" />
+                        Span="3"
+                        HorizontalItemSpacing="{StaticResource GridGutter}"
+                        VerticalItemSpacing="{StaticResource SpacingLg}" />
                 </CollectionView.ItemsLayout>
                 <CollectionView.ItemTemplate>
                     <DataTemplate x:DataType="viewModels:DadosObraBiblioteca">
@@ -240,7 +247,7 @@
                     Command="{Binding LimparFiltrosBibliotecaCommand}" />
                 <Button
                     Text="{StaticResource StringShowAll}"
-                    Style="{StaticResource DangerButtonStyle}"
+                    Style="{StaticResource PrimaryButtonStyle}"
                     Command="{Binding VoltarParaTodosCommand}" />
             </VerticalStackLayout>
 
@@ -277,11 +284,11 @@
                 Grid.RowSpan="3"
                 AutomationId="ImportButton"
                 Source="icon_import.svg"
-                WidthRequest="64"
-                HeightRequest="64"
-                Padding="18"
-                Margin="0,0,4,20"
-                CornerRadius="32"
+                WidthRequest="56"
+                HeightRequest="56"
+                Padding="16"
+                Margin="0,0,0,16"
+                CornerRadius="{StaticResource RadiusLarge}"
                 BackgroundColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}"
                 HorizontalOptions="End"
                 VerticalOptions="End"

@@ -6,19 +6,26 @@
     xmlns:controls="clr-namespace:Quadra.App.Controls"
     x:Name="Root">
 
-    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="{StaticResource SpacingSm}">
+    <Grid RowDefinitions="Auto,Auto,Auto" RowSpacing="{StaticResource SpacingXs}">
         <Grid.GestureRecognizers>
             <TapGestureRecognizer
                 Command="{Binding AbrirCommand, Source={x:Reference Root}}"
                 CommandParameter="{Binding Obra.Item, Source={x:Reference Root}}" />
         </Grid.GestureRecognizers>
 
-        <Grid HeightRequest="210">
+        <Grid HeightRequest="156">
             <controls:CapaObraView
                 CaminhoCapa="{Binding Obra.CaminhoCapa, Source={x:Reference Root}}"
                 PossuiCapa="{Binding Obra.PossuiCapa, Source={x:Reference Root}}"
                 Formato="{Binding Obra.Formato, Source={x:Reference Root}}"
                 DescricaoCapa="{Binding Obra.DescricaoCapa, Source={x:Reference Root}}" />
+
+            <ProgressBar
+                Progress="{Binding Obra.ValorProgresso, Source={x:Reference Root}}"
+                IsVisible="{Binding Obra.ExibeProgresso, Source={x:Reference Root}}"
+                Style="{StaticResource ProgressBarStyle}"
+                HeightRequest="4"
+                VerticalOptions="End" />
 
             <ImageButton
                 Source="icon_more.svg"
@@ -47,11 +54,6 @@
             <Label
                 Text="{Binding Obra.TextoProgresso, Source={x:Reference Root}}"
                 Style="{StaticResource SecondaryTextStyle}" />
-            <ProgressBar
-                Progress="{Binding Obra.ValorProgresso, Source={x:Reference Root}}"
-                IsVisible="{Binding Obra.ExibeProgresso, Source={x:Reference Root}}"
-                Style="{StaticResource ProgressBarStyle}"
-                HeightRequest="4" />
         </VerticalStackLayout>
     </Grid>
 </ContentView>
