@@ -1,158 +1,213 @@
 <?xml version="1.0" encoding="utf-8" ?>
-
 <ContentPage
     x:Class="Quadra.App.Pages.LeitorEpubPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    BackgroundColor="#FAF8F3"
+    xmlns:viewModels="clr-namespace:Quadra.App.ViewModels"
+    x:DataType="viewModels:LeitorEpubViewModel"
     Shell.NavBarIsVisible="False"
-    Shell.TabBarIsVisible="False">
+    Shell.TabBarIsVisible="False"
+    SafeAreaEdges="None"
+    BackgroundColor="{Binding CorFundo}">
 
-    <Grid RowDefinitions="Auto,*,Auto">
+    <Grid BackgroundColor="{Binding CorFundo}">
+        <WebView
+            x:Name="EpubWebView"
+            Source="{Binding ConteudoCapitulo}"
+            BackgroundColor="{Binding CorFundo}"
+            Navigating="OnWebViewNavigating"
+            Navigated="OnWebViewNavigated" />
 
-        <!-- Cabeçalho -->
-        <Grid
-            Grid.Row="0"
+        <Border
             IsVisible="{Binding ControlesVisiveis}"
-            Padding="12"
-            ColumnDefinitions="Auto,*,Auto"
-            BackgroundColor="#F4F0E8"
-            ZIndex="2">
-
-            <Button
-                Grid.Column="0"
-                Text="‹"
-                WidthRequest="42"
-                HeightRequest="42"
-                Padding="0"
-                CornerRadius="21"
-                FontSize="30"
-                BackgroundColor="#16000000"
-                TextColor="#202020"
-                Command="{Binding VoltarCommand}" />
-
-            <VerticalStackLayout
-                Grid.Column="1"
-                Margin="12,0"
-                VerticalOptions="Center"
-                Spacing="2">
-
-                <Label
-                    Text="{Binding Item.Title}"
-                    HorizontalTextAlignment="Center"
-                    MaxLines="1"
-                    LineBreakMode="TailTruncation"
-                    FontSize="14"
-                    FontAttributes="Bold"
-                    TextColor="#202020" />
-
-                <Label
-                    Text="{Binding TituloCapitulo}"
-                    HorizontalTextAlignment="Center"
-                    MaxLines="1"
-                    LineBreakMode="TailTruncation"
-                    FontSize="11"
-                    TextColor="#707070" />
-
-            </VerticalStackLayout>
-
-            <Label
-                Grid.Column="2"
-                Text="{Binding TextoCapitulo}"
-                VerticalOptions="Center"
-                FontSize="12"
-                TextColor="#505050" />
-
-        </Grid>
-
-        <!-- Conteúdo do EPUB -->
-        <Grid Grid.Row="1">
-
-            <WebView
-                x:Name="EpubWebView"
-                Source="{Binding ConteudoCapitulo}"
-                Navigating="OnWebViewNavigating"
-                BackgroundColor="#FAF8F3" />
-
-            <!-- Área central para alternar os controles -->
-            <Button
-                HorizontalOptions="Center"
-                VerticalOptions="Start"
-                Margin="0,10,0,0"
-                WidthRequest="100"
-                HeightRequest="38"
-                Opacity="0.01"
-                BackgroundColor="Transparent"
-                Command="{Binding AlternarControlesCommand}" />
-
-        </Grid>
-
-        <!-- Rodapé -->
-        <Grid
-            Grid.Row="2"
-            IsVisible="{Binding ControlesVisiveis}"
-            Padding="12,10"
-            ColumnDefinitions="*,Auto,*"
-            BackgroundColor="#F4F0E8"
-            ZIndex="2">
-
-            <Button
-                Grid.Column="0"
-                Text="Anterior"
-                HorizontalOptions="Start"
-                Padding="18,10"
-                CornerRadius="20"
-                BackgroundColor="#16000000"
-                TextColor="#202020"
-                Command="{Binding VoltarCapituloCommand}" />
-
-            <Label
-                Grid.Column="1"
-                Text="{Binding TextoCapitulo}"
-                Margin="14,0"
-                VerticalOptions="Center"
-                FontSize="12"
-                TextColor="#505050" />
-
-            <Button
-                Grid.Column="2"
-                Text="Próximo"
-                HorizontalOptions="End"
-                Padding="18,10"
-                CornerRadius="20"
-                BackgroundColor="#6C4DF6"
-                TextColor="White"
-                Command="{Binding AvancarCapituloCommand}" />
-
-        </Grid>
-
-        <!-- Carregamento -->
-        <Grid
-            Grid.RowSpan="3"
-            IsVisible="{Binding EstaCarregando}"
-            BackgroundColor="#FAF8F3"
+            Style="{StaticResource LeitorOverlayStyle}"
+            Padding="12,8"
+            SafeAreaEdges="Container"
+            VerticalOptions="Start"
             ZIndex="10">
+            <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
+                <ImageButton
+                    Source="icon_back.svg"
+                    WidthRequest="48"
+                    HeightRequest="48"
+                    Padding="12"
+                    BackgroundColor="{StaticResource LeitorControlSurface}"
+                    Command="{Binding VoltarCommand}"
+                    SemanticProperties.Description="{StaticResource StringReaderBack}" />
+                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="0">
+                    <Label
+                        Text="{Binding Item.Title}"
+                        Style="{StaticResource LabelMedium}"
+                        FontFamily="OpenSansSemibold"
+                        TextColor="{StaticResource LeitorTextPrimary}"
+                        MaxLines="1"
+                        LineBreakMode="TailTruncation" />
+                    <Label
+                        Text="{Binding TituloCapitulo}"
+                        Style="{StaticResource LabelSmall}"
+                        TextColor="{StaticResource LeitorTextSecondary}"
+                        MaxLines="1"
+                        LineBreakMode="TailTruncation" />
+                </VerticalStackLayout>
+                <Border
+                    Grid.Column="2"
+                    Padding="10,6"
+                    BackgroundColor="{StaticResource LeitorControlSurface}"
+                    VerticalOptions="Center">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusPill}" /></Border.StrokeShape>
+                    <Label
+                        Text="{Binding TextoCapitulo}"
+                        Style="{StaticResource LabelSmall}"
+                        TextColor="{StaticResource LeitorProgress}" />
+                </Border>
+                <ImageButton
+                    Grid.Column="3"
+                    Source="icon_settings.svg"
+                    WidthRequest="48"
+                    HeightRequest="48"
+                    Padding="12"
+                    BackgroundColor="{StaticResource LeitorControlSurface}"
+                    Command="{Binding AbrirAparenciaCommand}"
+                    SemanticProperties.Description="{StaticResource StringEpubAppearance}" />
+            </Grid>
+        </Border>
 
-            <VerticalStackLayout
-                HorizontalOptions="Center"
-                VerticalOptions="Center"
-                Spacing="14">
+        <Border
+            IsVisible="{Binding ControlesVisiveis}"
+            Style="{StaticResource LeitorOverlayStyle}"
+            Padding="16,10"
+            SafeAreaEdges="Container"
+            VerticalOptions="End"
+            ZIndex="10">
+            <Grid RowDefinitions="Auto,Auto" RowSpacing="8">
+                <ProgressBar
+                    Progress="{Binding ProgressoCapitulo}"
+                    ProgressColor="{StaticResource LeitorProgress}"
+                    BackgroundColor="{StaticResource LeitorControlSurface}"
+                    HeightRequest="3" />
+                <Grid Grid.Row="1" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                    <ImageButton
+                        Source="icon_back.svg"
+                        WidthRequest="48"
+                        HeightRequest="48"
+                        Padding="12"
+                        BackgroundColor="{StaticResource LeitorControlSurface}"
+                        IsEnabled="{Binding PodeVoltarCapitulo}"
+                        Command="{Binding VoltarCapituloCommand}"
+                        SemanticProperties.Description="{StaticResource StringEpubPreviousChapter}" />
+                    <Label
+                        Grid.Column="1"
+                        Text="{Binding TextoCapitulo}"
+                        Style="{StaticResource BodyMedium}"
+                        TextColor="{StaticResource LeitorTextPrimary}"
+                        HorizontalTextAlignment="Center"
+                        VerticalOptions="Center" />
+                    <ImageButton
+                        Grid.Column="2"
+                        Source="icon_forward.svg"
+                        WidthRequest="48"
+                        HeightRequest="48"
+                        Padding="12"
+                        BackgroundColor="{StaticResource LeitorControlSurface}"
+                        IsEnabled="{Binding PodeAvancarCapitulo}"
+                        Command="{Binding AvancarCapituloCommand}"
+                        SemanticProperties.Description="{StaticResource StringEpubNextChapter}" />
+                </Grid>
+            </Grid>
+        </Border>
 
-                <ActivityIndicator
-                    IsRunning="{Binding EstaCarregando}"
-                    WidthRequest="42"
-                    HeightRequest="42"
-                    Color="#6C4DF6" />
+        <ProgressBar
+            IsVisible="{Binding ControlesOcultos}"
+            Progress="{Binding ProgressoCapitulo}"
+            ProgressColor="{StaticResource LeitorProgress}"
+            BackgroundColor="{StaticResource LeitorControlSurface}"
+            HeightRequest="2"
+            VerticalOptions="End"
+            InputTransparent="True"
+            ZIndex="5" />
 
-                <Label
-                    Text="Preparando livro..."
-                    FontSize="14"
-                    TextColor="#202020" />
+        <Grid IsVisible="{Binding PainelAparenciaVisivel}" ZIndex="20">
+            <BoxView BackgroundColor="{StaticResource LeitorBackground}" Opacity="0.72">
+                <BoxView.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding FecharAparenciaCommand}" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+            <Border
+                Style="{StaticResource LeitorOverlayStyle}"
+                Padding="20,16,20,24"
+                SafeAreaEdges="Container"
+                VerticalOptions="End">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="24,24,0,0" />
+                </Border.StrokeShape>
+                <ScrollView MaximumHeightRequest="560">
+                    <VerticalStackLayout Spacing="16">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label
+                                Text="{StaticResource StringEpubAppearance}"
+                                Style="{StaticResource HeadlineMedium}"
+                                TextColor="{StaticResource LeitorTextPrimary}"
+                                VerticalOptions="Center" />
+                            <ImageButton
+                                Grid.Column="1"
+                                Source="icon_close.svg"
+                                WidthRequest="48"
+                                HeightRequest="48"
+                                Padding="12"
+                                BackgroundColor="Transparent"
+                                Command="{Binding FecharAparenciaCommand}"
+                                SemanticProperties.Description="{StaticResource StringCloseSearch}" />
+                        </Grid>
 
-            </VerticalStackLayout>
+                        <Label Text="{StaticResource StringEpubTheme}" Style="{StaticResource LabelMedium}" TextColor="{StaticResource LeitorTextSecondary}" />
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Text="{StaticResource StringEpubThemeLight}" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnTemaClicked" CommandParameter="Claro">
+                                <Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding TemaClaroSelecionado}" Value="True"><Setter Property="BackgroundColor" Value="{StaticResource LeitorProgress}" /><Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" /></DataTrigger></Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="1" Text="{StaticResource StringEpubThemeDark}" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnTemaClicked" CommandParameter="Escuro">
+                                <Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding TemaEscuroSelecionado}" Value="True"><Setter Property="BackgroundColor" Value="{StaticResource LeitorProgress}" /><Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" /></DataTrigger></Button.Triggers>
+                            </Button>
+                            <Button Grid.Column="2" Text="{StaticResource StringEpubThemeSepia}" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnTemaClicked" CommandParameter="Sepia">
+                                <Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding TemaSepiaSelecionado}" Value="True"><Setter Property="BackgroundColor" Value="{StaticResource LeitorProgress}" /><Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" /></DataTrigger></Button.Triggers>
+                            </Button>
+                        </Grid>
 
+                        <Label Text="{StaticResource StringEpubFont}" Style="{StaticResource LabelMedium}" TextColor="{StaticResource LeitorTextSecondary}" />
+                        <Grid ColumnDefinitions="*,*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Text="{StaticResource StringEpubFontSystem}" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnFonteClicked" CommandParameter="Sistema"><Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding FonteSistemaSelecionada}" Value="True"><Setter Property="BackgroundColor" Value="{StaticResource LeitorProgress}" /><Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" /></DataTrigger></Button.Triggers></Button>
+                            <Button Grid.Column="1" Text="{StaticResource StringEpubFontSansSerif}" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnFonteClicked" CommandParameter="SansSerif"><Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding FonteSansSerifSelecionada}" Value="True"><Setter Property="BackgroundColor" Value="{StaticResource LeitorProgress}" /><Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" /></DataTrigger></Button.Triggers></Button>
+                            <Button Grid.Column="2" Text="{StaticResource StringEpubFontSerif}" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnFonteClicked" CommandParameter="Serif"><Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding FonteSerifSelecionada}" Value="True"><Setter Property="BackgroundColor" Value="{StaticResource LeitorProgress}" /><Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" /></DataTrigger></Button.Triggers></Button>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto"><Label Text="{StaticResource StringEpubTextSize}" Style="{StaticResource LabelMedium}" TextColor="{StaticResource LeitorTextSecondary}" /><Label Grid.Column="1" Text="{Binding TextoTamanhoTexto}" Style="{StaticResource LabelSmall}" TextColor="{StaticResource LeitorTextPrimary}" /></Grid>
+                        <Slider Minimum="14" Maximum="28" Value="{Binding TamanhoTexto, Mode=OneWay}" DragCompleted="OnTamanhoTextoDragCompleted" MinimumTrackColor="{StaticResource LeitorProgress}" ThumbColor="{StaticResource LeitorProgress}" />
+                        <Grid ColumnDefinitions="*,Auto"><Label Text="{StaticResource StringEpubLineSpacing}" Style="{StaticResource LabelMedium}" TextColor="{StaticResource LeitorTextSecondary}" /><Label Grid.Column="1" Text="{Binding TextoEspacamentoLinhas}" Style="{StaticResource LabelSmall}" TextColor="{StaticResource LeitorTextPrimary}" /></Grid>
+                        <Slider Minimum="1.2" Maximum="2.4" Value="{Binding EspacamentoLinhas, Mode=OneWay}" DragCompleted="OnEspacamentoLinhasDragCompleted" MinimumTrackColor="{StaticResource LeitorProgress}" ThumbColor="{StaticResource LeitorProgress}" />
+                        <Grid ColumnDefinitions="*,Auto"><Label Text="{StaticResource StringEpubMargins}" Style="{StaticResource LabelMedium}" TextColor="{StaticResource LeitorTextSecondary}" /><Label Grid.Column="1" Text="{Binding TextoMargemLeitura}" Style="{StaticResource LabelSmall}" TextColor="{StaticResource LeitorTextPrimary}" /></Grid>
+                        <Slider Minimum="12" Maximum="48" Value="{Binding MargemLeitura, Mode=OneWay}" DragCompleted="OnMargemDragCompleted" MinimumTrackColor="{StaticResource LeitorProgress}" ThumbColor="{StaticResource LeitorProgress}" />
+
+                        <Label Text="{StaticResource StringEpubAlignment}" Style="{StaticResource LabelMedium}" TextColor="{StaticResource LeitorTextSecondary}" />
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+                            <Button Grid.Column="0" Text="{StaticResource StringEpubAlignLeft}" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnAlinhamentoClicked" CommandParameter="Esquerda"><Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding AlinhamentoEsquerdaSelecionado}" Value="True"><Setter Property="BackgroundColor" Value="{StaticResource LeitorProgress}" /><Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" /></DataTrigger></Button.Triggers></Button>
+                            <Button Grid.Column="1" Text="{StaticResource StringEpubAlignJustified}" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnAlinhamentoClicked" CommandParameter="Justificado"><Button.Triggers><DataTrigger TargetType="Button" Binding="{Binding AlinhamentoJustificadoSelecionado}" Value="True"><Setter Property="BackgroundColor" Value="{StaticResource LeitorProgress}" /><Setter Property="TextColor" Value="{StaticResource ColorAccentOnPrimaryDark}" /></DataTrigger></Button.Triggers></Button>
+                        </Grid>
+                    </VerticalStackLayout>
+                </ScrollView>
+            </Border>
         </Grid>
 
-    </Grid>
+        <Grid IsVisible="{Binding EstaCarregando}" BackgroundColor="{Binding CorFundo}" ZIndex="30">
+            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="{StaticResource SpacingSm}">
+                <ActivityIndicator IsRunning="{Binding EstaCarregando}" Color="{StaticResource LeitorProgress}" />
+                <Label Text="{StaticResource StringEpubPreparing}" Style="{StaticResource BodyMedium}" TextColor="{StaticResource LeitorTextPrimary}" />
+            </VerticalStackLayout>
+        </Grid>
 
+        <Grid IsVisible="{Binding TemErro}" Padding="{StaticResource SpacingXl}" BackgroundColor="{Binding CorFundo}" ZIndex="30">
+            <VerticalStackLayout HorizontalOptions="Center" VerticalOptions="Center" Spacing="{StaticResource SpacingMd}">
+                <Label Text="{Binding MensagemErro}" Style="{StaticResource BodyLarge}" HorizontalTextAlignment="Center" />
+                <Button Text="{StaticResource StringReaderBack}" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding VoltarCommand}" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
 </ContentPage>

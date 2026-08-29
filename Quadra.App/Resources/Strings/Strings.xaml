@@ -63,4 +63,23 @@
     <x:String x:Key="StringReaderNoPages">Nenhuma página válida foi encontrada neste arquivo.</x:String>
     <x:String x:Key="StringReaderLoadError">Não foi possível preparar este arquivo para leitura.</x:String>
     <x:String x:Key="StringReaderBack">Voltar para os detalhes</x:String>
+    <x:String x:Key="StringEpubAppearance">Aparência</x:String>
+    <x:String x:Key="StringEpubTheme">Tema</x:String>
+    <x:String x:Key="StringEpubThemeLight">Claro</x:String>
+    <x:String x:Key="StringEpubThemeDark">Escuro</x:String>
+    <x:String x:Key="StringEpubThemeSepia">Sépia</x:String>
+    <x:String x:Key="StringEpubFont">Fonte</x:String>
+    <x:String x:Key="StringEpubFontSystem">Sistema</x:String>
+    <x:String x:Key="StringEpubFontSansSerif">Sans serif</x:String>
+    <x:String x:Key="StringEpubFontSerif">Serif</x:String>
+    <x:String x:Key="StringEpubTextSize">Tamanho do texto</x:String>
+    <x:String x:Key="StringEpubLineSpacing">Espaçamento entre linhas</x:String>
+    <x:String x:Key="StringEpubMargins">Margens</x:String>
+    <x:String x:Key="StringEpubAlignment">Alinhamento</x:String>
+    <x:String x:Key="StringEpubAlignLeft">À esquerda</x:String>
+    <x:String x:Key="StringEpubAlignJustified">Justificado</x:String>
+    <x:String x:Key="StringEpubPreviousChapter">Capítulo anterior</x:String>
+    <x:String x:Key="StringEpubNextChapter">Próximo capítulo</x:String>
+    <x:String x:Key="StringEpubPreparing">Preparando EPUB…</x:String>
+    <x:String x:Key="StringEpubToggleControls">Mostrar ou ocultar controles de leitura</x:String>
 </ResourceDictionary>
