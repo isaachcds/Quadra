@@ -87,6 +87,13 @@
                         LineBreakMode="MiddleTruncation" />
                 </VerticalStackLayout>
 
+                <Button
+                    Text="Coleções"
+                    ImageSource="icon_collections.svg"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    HorizontalOptions="Center"
+                    Command="{Binding AbrirColecoesCommand}" />
+
                 <Border
                     AutomationId="BookDetailsProgress"
                     Style="{StaticResource CardBorderStyle}"
@@ -283,6 +290,57 @@
                     <ActivityIndicator IsRunning="{Binding EstaExcluindo}" />
                     <Label Text="Excluindo obra…" Style="{StaticResource BodyTextStyle}" />
                 </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+        <Grid Grid.RowSpan="2" IsVisible="{Binding PainelColecoesVisivel}" ZIndex="20">
+            <BoxView BackgroundColor="{AppThemeBinding Light={StaticResource ColorSurfaceLowestDark}, Dark={StaticResource ColorSurfaceLowestDark}}" Opacity="0.72">
+                <BoxView.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding FecharColecoesCommand}" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+            <Border
+                Style="{StaticResource CardBorderStyle}"
+                Padding="20,16,20,24"
+                BackgroundColor="{AppThemeBinding Light={StaticResource ColorBackgroundLight}, Dark={StaticResource ColorBackgroundDark}}"
+                VerticalOptions="End">
+                <Border.StrokeShape>
+                    <RoundRectangle CornerRadius="24,24,0,0" />
+                </Border.StrokeShape>
+                <Grid RowDefinitions="Auto,*,Auto" RowSpacing="{StaticResource SpacingMd}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <VerticalStackLayout Spacing="{StaticResource SpacingXs}">
+                            <Label Text="Coleções" Style="{StaticResource HeadlineMedium}" />
+                            <Label Text="Organize esta obra nas suas coleções." Style="{StaticResource SecondaryTextStyle}" />
+                        </VerticalStackLayout>
+                        <ImageButton
+                            Grid.Column="1"
+                            Source="icon_close.svg"
+                            WidthRequest="48"
+                            HeightRequest="48"
+                            Padding="12"
+                            BackgroundColor="Transparent"
+                            Command="{Binding FecharColecoesCommand}"
+                            SemanticProperties.Description="Fechar coleções" />
+                    </Grid>
+                    <CollectionView Grid.Row="1" ItemsSource="{Binding Colecoes}" MaximumHeightRequest="320" SelectionMode="None">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="viewModels:OpcaoColecaoObra">
+                                <Border Margin="0,0,0,8" Padding="12,8" Style="{StaticResource CardBorderStyle}">
+                                    <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusMedium}" /></Border.StrokeShape>
+                                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource SpacingMd}">
+                                        <Label Text="{Binding Colecao.Nome}" Style="{StaticResource BodyTextStyle}" VerticalOptions="Center" MaxLines="1" LineBreakMode="TailTruncation" />
+                                        <Switch Grid.Column="1" IsToggled="{Binding EstaSelecionada}" Toggled="OnColecaoToggled" VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                        <CollectionView.EmptyView>
+                            <Label Text="Nenhuma coleção criada ainda." Style="{StaticResource SecondaryTextStyle}" HorizontalTextAlignment="Center" Margin="0,24" />
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+                    <Button Grid.Row="2" Text="Nova coleção" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnCriarColecaoClicked" />
+                </Grid>
             </Border>
         </Grid>
     </Grid>

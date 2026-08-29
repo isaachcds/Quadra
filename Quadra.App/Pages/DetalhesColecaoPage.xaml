@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="Quadra.App.Pages.DetalhesColecaoPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:models="clr-namespace:Quadra.App.Models"
+    xmlns:vm="clr-namespace:Quadra.App.ViewModels"
+    x:DataType="vm:DetalhesColecaoViewModel"
+    BackgroundColor="{AppThemeBinding Light={StaticResource ColorBackgroundLight}, Dark={StaticResource ColorBackgroundDark}}"
+    SafeAreaEdges="Container"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,*">
+        <Grid
+            MinimumHeightRequest="64"
+            Padding="20,8"
+            ColumnDefinitions="Auto,*,Auto,Auto"
+            ColumnSpacing="{StaticResource SpacingXs}"
+            BackgroundColor="{AppThemeBinding Light={StaticResource ColorSurfaceLowLight}, Dark={StaticResource ColorSurfaceLowDark}}">
+            <ImageButton Source="icon_back.svg" WidthRequest="48" HeightRequest="48" Padding="12" BackgroundColor="Transparent" Clicked="OnVoltar" SemanticProperties.Description="Voltar" />
+            <Label Grid.Column="1" Text="{Binding Colecao.Nome}" Style="{StaticResource HeadlineMedium}" VerticalOptions="Center" MaxLines="1" LineBreakMode="TailTruncation" />
+            <ImageButton Grid.Column="2" Source="icon_settings.svg" WidthRequest="48" HeightRequest="48" Padding="12" BackgroundColor="Transparent" Clicked="OnEditar" SemanticProperties.Description="Editar coleção" />
+            <ImageButton Grid.Column="3" Source="icon_delete.svg" WidthRequest="48" HeightRequest="48" Padding="12" BackgroundColor="Transparent" Clicked="OnExcluir" SemanticProperties.Description="Excluir coleção" />
+        </Grid>
+
+        <Grid Grid.Row="1" Padding="20,0" RowDefinitions="Auto,Auto,*">
+            <Border Margin="0,16,0,20" Padding="{StaticResource SpacingMd}" Style="{StaticResource CardBorderStyle}">
+                <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusLarge}" /></Border.StrokeShape>
+                <VerticalStackLayout Spacing="{StaticResource SpacingMd}">
+                    <Label Text="{Binding Colecao.Descricao}" Style="{StaticResource SecondaryTextStyle}" />
+                    <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource SpacingMd}">
+                        <Label Text="{Binding Quantidade, StringFormat='{0} obras'}" Style="{StaticResource LabelSmall}" TextColor="{AppThemeBinding Light={StaticResource ColorTextSecondaryLight}, Dark={StaticResource ColorTextSecondaryDark}}" />
+                        <Label Grid.Column="1" Text="{Binding Progresso, StringFormat='{0:P0} concluído'}" Style="{StaticResource LabelSmall}" TextColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}" />
+                    </Grid>
+                    <ProgressBar Progress="{Binding Progresso}" Style="{StaticResource ProgressBarStyle}" HeightRequest="4" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0,0,0,12" ColumnSpacing="{StaticResource SpacingMd}">
+                <Label Text="Obras" Style="{StaticResource LabelSmall}" CharacterSpacing="1.2" TextTransform="Uppercase" TextColor="{AppThemeBinding Light={StaticResource ColorTextSecondaryLight}, Dark={StaticResource ColorTextSecondaryDark}}" VerticalOptions="Center" />
+                <Button Grid.Column="1" Text="Adicionar obra" Style="{StaticResource SecondaryButtonStyle}" Clicked="OnAdicionar" />
+            </Grid>
+
+            <Grid Grid.Row="2">
+                <CollectionView ItemsSource="{Binding Obras}" SelectionMode="None">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:ObraBiblioteca">
+                            <Border Margin="0,0,0,12" Padding="{StaticResource SpacingSm}" Style="{StaticResource CardBorderStyle}">
+                                <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusMedium}" /></Border.StrokeShape>
+                                <Grid ColumnDefinitions="56,*,Auto" ColumnSpacing="{StaticResource SpacingMd}">
+                                    <Grid HeightRequest="84">
+                                        <Grid.GestureRecognizers><TapGestureRecognizer Tapped="OnAbrirObra" /></Grid.GestureRecognizers>
+                                        <Image Source="icon_book_placeholder.svg" WidthRequest="32" HeightRequest="32" Opacity="0.55" HorizontalOptions="Center" VerticalOptions="Center" />
+                                        <Image Source="{Binding CoverPath}" Aspect="AspectFill" />
+                                    </Grid>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="{StaticResource SpacingXs}" VerticalOptions="Center">
+                                        <VerticalStackLayout.GestureRecognizers><TapGestureRecognizer Tapped="OnAbrirObra" /></VerticalStackLayout.GestureRecognizers>
+                                        <Label Text="{Binding Title}" Style="{StaticResource BodyTextStyle}" FontFamily="OpenSansSemibold" MaxLines="2" LineBreakMode="TailTruncation" />
+                                        <Label Text="{Binding Format}" Style="{StaticResource SecondaryTextStyle}" />
+                                    </VerticalStackLayout>
+                                    <ImageButton Grid.Column="2" Source="icon_close.svg" WidthRequest="48" HeightRequest="48" Padding="12" BackgroundColor="Transparent" Clicked="OnRemover" CommandParameter="{Binding}" SemanticProperties.Description="Remover obra da coleção" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout Padding="{StaticResource SpacingLg}" Spacing="{StaticResource SpacingSm}" HorizontalOptions="Center" VerticalOptions="Center">
+                            <Image Source="icon_book_placeholder.svg" WidthRequest="48" HeightRequest="48" Opacity="0.65" />
+                            <Label Text="Esta coleção ainda está vazia" Style="{StaticResource BodyTextStyle}" HorizontalTextAlignment="Center" />
+                            <Label Text="Adicione obras existentes da sua biblioteca." Style="{StaticResource SecondaryTextStyle}" HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+                    <CollectionView.Footer><BoxView HeightRequest="32" BackgroundColor="Transparent" /></CollectionView.Footer>
+                </CollectionView>
+            </Grid>
+        </Grid>
+    </Grid>
+</ContentPage>

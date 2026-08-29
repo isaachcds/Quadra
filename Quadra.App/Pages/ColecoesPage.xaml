@@ -3,15 +3,70 @@
     x:Class="Quadra.App.Pages.ColecoesPage"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:viewModels="clr-namespace:Quadra.App.ViewModels"
+    x:DataType="viewModels:ColecoesViewModel"
+    AutomationId="CollectionsPage"
     BackgroundColor="{AppThemeBinding Light={StaticResource ColorBackgroundLight}, Dark={StaticResource ColorBackgroundDark}}"
     SafeAreaEdges="Container"
     Shell.NavBarIsVisible="False">
-    <Grid Padding="24">
-        <VerticalStackLayout MaximumWidthRequest="440" Spacing="16" HorizontalOptions="Center" VerticalOptions="Center">
-            <Image Source="icon_collections.svg" WidthRequest="64" HeightRequest="64" SemanticProperties.Description="Coleções" />
-            <Label Text="Coleções" Style="{StaticResource HeadlineMobile}" HorizontalTextAlignment="Center" TextColor="{AppThemeBinding Light={StaticResource ColorTextPrimaryLight}, Dark={StaticResource ColorTextPrimaryDark}}" />
-            <Label Text="Organize suas obras em séries, sagas e bibliotecas personalizadas." Style="{StaticResource SecondaryTextStyle}" HorizontalTextAlignment="Center" />
-            <Label Text="Em breve" Style="{StaticResource LabelMedium}" FontFamily="OpenSansSemibold" HorizontalTextAlignment="Center" TextColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}" />
-        </VerticalStackLayout>
+
+    <Grid RowDefinitions="Auto,*">
+        <Grid MinimumHeightRequest="64" Padding="20,8" ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource SpacingSm}">
+            <Image Source="icon_collections.svg" WidthRequest="32" HeightRequest="32" VerticalOptions="Center" SemanticProperties.Description="{StaticResource StringCollections}" />
+            <Label Grid.Column="1" Text="{StaticResource StringCollections}" Style="{StaticResource HeadlineMobile}" VerticalOptions="Center" />
+            <Button Grid.Column="2" Text="+" FontSize="28" Style="{StaticResource CircularIconButtonStyle}" BackgroundColor="Transparent" Clicked="OnCriarClicked" SemanticProperties.Description="Criar coleção" />
+        </Grid>
+
+        <Grid Grid.Row="1" Padding="20,0">
+            <CollectionView AutomationId="CollectionsGrid" IsVisible="{Binding TemColecoes}" ItemsSource="{Binding Colecoes}" SelectionMode="None">
+                <CollectionView.ItemsLayout>
+                    <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="{StaticResource GridGutter}" VerticalItemSpacing="{StaticResource SpacingLg}" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.Header>
+                    <Label Text="Coleções pessoais" Style="{StaticResource LabelSmall}" CharacterSpacing="1.2" TextTransform="Uppercase" TextColor="{AppThemeBinding Light={StaticResource ColorTextSecondaryLight}, Dark={StaticResource ColorTextSecondaryDark}}" Margin="0,16,0,16" />
+                </CollectionView.Header>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="viewModels:CartaoColecao">
+                        <VerticalStackLayout Spacing="{StaticResource SpacingSm}">
+                            <Grid HeightRequest="190">
+                                <Grid.GestureRecognizers><TapGestureRecognizer Tapped="OnAbrirColecao" /></Grid.GestureRecognizers>
+                                <Border Style="{StaticResource CardBorderStyle}">
+                                    <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusLarge}" /></Border.StrokeShape>
+                                    <Grid RowDefinitions="*,*" ColumnDefinitions="*,*" RowSpacing="2" ColumnSpacing="2">
+                                        <Image Source="{Binding Capa1}" IsVisible="{Binding TemCapa1}" Aspect="AspectFill" />
+                                        <Image Grid.Column="1" Source="{Binding Capa2}" IsVisible="{Binding TemCapa2}" Aspect="AspectFill" />
+                                        <Image Grid.Row="1" Source="{Binding Capa3}" IsVisible="{Binding TemCapa3}" Aspect="AspectFill" />
+                                        <Image Grid.Row="1" Grid.Column="1" Source="{Binding Capa4}" IsVisible="{Binding TemCapa4}" Aspect="AspectFill" />
+                                        <Image Grid.RowSpan="2" Grid.ColumnSpan="2" Source="icon_collections.svg" WidthRequest="40" HeightRequest="40" Opacity="0.55" IsVisible="{Binding SemCapas}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                    </Grid>
+                                </Border>
+                                <ProgressBar Progress="{Binding Progresso}" Style="{StaticResource ProgressBarStyle}" HeightRequest="4" VerticalOptions="End" />
+                            </Grid>
+                            <Label Text="{Binding Colecao.Nome}" Style="{StaticResource BodyTextStyle}" FontFamily="OpenSansSemibold" MaxLines="2" LineBreakMode="TailTruncation" />
+                            <Label Text="{Binding Quantidade}" Style="{StaticResource SecondaryTextStyle}" />
+                            <Label Text="{Binding TextoProgresso}" Style="{StaticResource LabelSmall}" TextColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}" />
+                        </VerticalStackLayout>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+                <CollectionView.Footer><BoxView HeightRequest="96" BackgroundColor="Transparent" /></CollectionView.Footer>
+            </CollectionView>
+
+            <VerticalStackLayout IsVisible="{Binding Vazia}" MaximumWidthRequest="360" Padding="{StaticResource SpacingLg}" Spacing="{StaticResource SpacingMd}" HorizontalOptions="Center" VerticalOptions="Center">
+                <Border WidthRequest="112" HeightRequest="112" Style="{StaticResource CardBorderStyle}" HorizontalOptions="Center">
+                    <Border.StrokeShape><RoundRectangle CornerRadius="{StaticResource RadiusExtraLarge}" /></Border.StrokeShape>
+                    <Image Source="icon_collections.svg" WidthRequest="56" HeightRequest="56" />
+                </Border>
+                <Label Text="Ainda não há coleções" Style="{StaticResource HeadlineMedium}" HorizontalTextAlignment="Center" />
+                <Label Text="Agrupe as obras da sua biblioteca em coleções pessoais." Style="{StaticResource SecondaryTextStyle}" HorizontalTextAlignment="Center" />
+                <Button Text="Criar coleção" Style="{StaticResource PrimaryButtonStyle}" Clicked="OnCriarClicked" />
+            </VerticalStackLayout>
+
+            <VerticalStackLayout IsVisible="{Binding EstaCarregando}" Spacing="{StaticResource SpacingSm}" HorizontalOptions="Center" VerticalOptions="Center">
+                <ActivityIndicator IsRunning="{Binding EstaCarregando}" />
+                <Label Text="Carregando coleções…" Style="{StaticResource SecondaryTextStyle}" />
+            </VerticalStackLayout>
+
+            <Button Text="+" FontSize="28" WidthRequest="56" HeightRequest="56" Padding="0" CornerRadius="{StaticResource RadiusLarge}" BackgroundColor="{AppThemeBinding Light={StaticResource ColorAccentPrimaryLight}, Dark={StaticResource ColorAccentPrimaryDark}}" TextColor="{AppThemeBinding Light={StaticResource ColorAccentOnPrimaryLight}, Dark={StaticResource ColorAccentOnPrimaryDark}}" HorizontalOptions="End" VerticalOptions="End" Margin="0,0,0,16" IsVisible="{Binding TemColecoes}" Clicked="OnCriarClicked" SemanticProperties.Description="Criar coleção" />
+        </Grid>
     </Grid>
 </ContentPage>

@@ -6,6 +6,7 @@ using Quadra.App.Pages;
 using Quadra.App.Presentation;
 using Quadra.App.Services.Readers;
 using Quadra.App.Services.Storage;
+using System.Collections.ObjectModel;
 
 namespace Quadra.App.ViewModels;
 
@@ -15,6 +16,9 @@ public partial class DetalhesObraViewModel : ObservableObject, IQueryAttributabl
     private readonly LimpezaBibliotecaService _cleanupService;
     private readonly LeitorQuadrinhosService _leitorQuadrinhosService;
     private CancellationTokenSource? _preparationCancellation;
+    public ObservableCollection<OpcaoColecaoObra> Colecoes { get; } = [];
+
+    [ObservableProperty] public partial bool PainelColecoesVisivel { get; set; }
 
     [ObservableProperty]
     public partial ObraBiblioteca? Item { get; set; }
@@ -295,6 +299,7 @@ public partial class DetalhesObraViewModel : ObservableObject, IQueryAttributabl
             TextoTamanhoArquivo = ApresentacaoDetalhesObra.FormatarTamanhoArquivo(
                 fileState.FileSizeBytes);
             AtualizarApresentacao();
+            await CarregarColecoesAsync();
         }
         catch (Exception exception)
         {
@@ -307,6 +312,38 @@ public partial class DetalhesObraViewModel : ObservableObject, IQueryAttributabl
             EstaCarregando = false;
             AtualizarEstados();
         }
+    }
+
+    [RelayCommand]
+    private void AbrirColecoes() => PainelColecoesVisivel = true;
+
+    [RelayCommand]
+    private void FecharColecoes() => PainelColecoesVisivel = false;
+
+    public async Task AlternarColecaoAsync(OpcaoColecaoObra opcao, bool incluir)
+    {
+        if (Item is null) return;
+        await _database.DefinirObraNaColecaoAsync(opcao.Colecao.Id, Item.Id, incluir);
+        opcao.EstaSelecionada = incluir;
+    }
+
+    public async Task CriarColecaoAsync(string nome)
+    {
+        if (Item is null || string.IsNullOrWhiteSpace(nome)) return;
+        var colecao = new Colecao { Nome = nome.Trim(), DataCriacao = DateTime.Now, Ordem = DateTime.Now.GetHashCode() };
+        await _database.SalvarColecaoAsync(colecao);
+        await _database.DefinirObraNaColecaoAsync(colecao.Id, Item.Id, true);
+        await CarregarColecoesAsync();
+    }
+
+    private async Task CarregarColecoesAsync()
+    {
+        if (Item is null) return;
+        var associadas = await _database.ObterColecoesDaObraAsync(Item.Id);
+        var ids = associadas.Select(c => c.Id).ToHashSet();
+        Colecoes.Clear();
+        foreach (var colecao in await _database.ObterColecoesAsync())
+            Colecoes.Add(new OpcaoColecaoObra(colecao, ids.Contains(colecao.Id)));
     }
 
     public void CancelarPreparacao()
@@ -424,4 +461,11 @@ public partial class DetalhesObraViewModel : ObservableObject, IQueryAttributabl
         bool FileExists,
         bool CapaExiste,
         long? FileSizeBytes);
+}
+
+public partial class OpcaoColecaoObra : ObservableObject
+{
+    public Colecao Colecao { get; }
+    [ObservableProperty] public partial bool EstaSelecionada { get; set; }
+    public OpcaoColecaoObra(Colecao colecao, bool estaSelecionada) { Colecao = colecao; EstaSelecionada = estaSelecionada; }
 }

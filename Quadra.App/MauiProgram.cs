@@ -86,6 +86,9 @@ builder.Services.AddSingleton<
         builder.Services.AddTransient<BibliotecaViewModel>();
         builder.Services.AddTransient<BibliotecaPage>();
         builder.Services.AddTransient<ColecoesPage>();
+        builder.Services.AddTransient<ColecoesViewModel>();
+        builder.Services.AddTransient<DetalhesColecaoViewModel>();
+        builder.Services.AddTransient<DetalhesColecaoPage>();
         builder.Services.AddTransient<HistoricoPage>();
         builder.Services.AddTransient<SettingsPage>();
 

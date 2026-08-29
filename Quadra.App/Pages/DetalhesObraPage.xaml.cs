@@ -37,4 +37,17 @@ public partial class DetalhesObraPage : ContentPage
     {
         await Shell.Current.GoToAsync("..");
     }
+
+    private async void OnColecaoToggled(object? sender, ToggledEventArgs e)
+    {
+        if ((sender as Switch)?.BindingContext is OpcaoColecaoObra opcao)
+            await _viewModel.AlternarColecaoAsync(opcao, e.Value);
+    }
+
+    private async void OnCriarColecaoClicked(object? sender, EventArgs e)
+    {
+        var nome = await DisplayPromptAsync("Nova coleção", "Nome");
+        if (!string.IsNullOrWhiteSpace(nome))
+            await _viewModel.CriarColecaoAsync(nome);
+    }
 }

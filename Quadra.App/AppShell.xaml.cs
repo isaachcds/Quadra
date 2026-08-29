@@ -15,6 +15,7 @@ public partial class AppShell : Shell
         Routing.RegisterRoute("BookDetailsPage", typeof(DetalhesObraPage));
         Routing.RegisterRoute("ReaderPage", typeof(LeitorPage));
         Routing.RegisterRoute("EpubReaderPage", typeof(LeitorEpubPage));
+        Routing.RegisterRoute("CollectionDetailsPage", typeof(DetalhesColecaoPage));
 
         var mainTabs = new TabBar { Route = "main" };
         mainTabs.Items.Add(CreateTab(
