@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using Quadra.App.Data;
 using Quadra.App.Pages;
 using Quadra.App.Services.Covers;
+using Quadra.App.Services.Import;
 using Quadra.App.Services.Readers;
 using Quadra.App.Services.Storage;
 using Quadra.App.ViewModels;
@@ -49,6 +50,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<QuadraDatabase>();
         builder.Services.AddSingleton<ArmazenamentoBibliotecaService>();
 
+        builder.Services.AddSingleton<ImportacaoBibliotecaService>();
 #if ANDROID
         builder.Services.AddSingleton<
             IEspacoArmazenamentoService,

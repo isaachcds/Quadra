@@ -20,6 +20,7 @@ public partial class BibliotecaViewModel : ObservableObject
     private readonly QuadraDatabase _database;
     private readonly CapaService _coverService;
     private readonly LimpezaBibliotecaService _cleanupService;
+    private readonly ImportacaoBibliotecaService _importacaoService;
     private readonly List<DadosObraBiblioteca> _visualItems = [];
     private CancellationTokenSource? _importCancellation;
     private CancellationTokenSource? _searchCancellation;
@@ -116,12 +117,14 @@ public partial class BibliotecaViewModel : ObservableObject
         ArmazenamentoBibliotecaService storageService,
         QuadraDatabase database,
         CapaService coverService,
-        LimpezaBibliotecaService cleanupService)
+        LimpezaBibliotecaService cleanupService,
+        ImportacaoBibliotecaService importacaoService)
     {
         _storageService = storageService;
         _database = database;
         _coverService = coverService;
         _cleanupService = cleanupService;
+        _importacaoService = importacaoService;
 
         try
         {
@@ -257,11 +260,7 @@ public partial class BibliotecaViewModel : ObservableObject
                 return;
             }
 
-            ItemImportado = await _storageService.ImportarAsync(arquivo, cancellationToken);
-            ItemImportado.CoverPath = await _coverService.GerarCapaAsync(
-                ItemImportado,
-                cancellationToken);
-            await _database.SalvarObraBibliotecaAsync(ItemImportado);
+            ItemImportado = await _importacaoService.ImportarAsync(arquivo, cancellationToken);
 
             Itens.Insert(0, ItemImportado);
             _visualItems.Insert(0, new DadosObraBiblioteca(ItemImportado));
