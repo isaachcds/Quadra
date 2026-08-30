@@ -5,20 +5,15 @@
              BackgroundColor="{AppThemeBinding Light={StaticResource ColorBackgroundLight}, Dark={StaticResource ColorBackgroundDark}}"
              Shell.NavBarIsVisible="False"
              Shell.TabBarIsVisible="False">
-    <Grid>
-        <Border HorizontalOptions="Center"
-                VerticalOptions="Center"
-                WidthRequest="192"
-                HeightRequest="264"
-                Padding="28"
-                BackgroundColor="{StaticResource ColorSurfaceHighLight}"
-                Stroke="{StaticResource ColorOutlineMutedLight}"
-                StrokeShape="RoundRectangle 24">
-            <Image x:Name="OpeningLogo"
-                   Source="quadra_opening_logo.svg"
-                   Aspect="AspectFit"
-                   Opacity="0"
-                   Scale="0.92" />
-        </Border>
+    <Grid Padding="32">
+        <Image x:Name="OpeningLogo"
+               Source="{AppThemeBinding Light=logo.svg, Dark=logo_dark.svg}"
+               HorizontalOptions="Center"
+               VerticalOptions="Center"
+               WidthRequest="320"
+               HeightRequest="214"
+               Aspect="AspectFit"
+               Opacity="0"
+               Scale="0.92" />
     </Grid>
 </ContentPage>
