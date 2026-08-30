@@ -8,6 +8,15 @@ O projeto foi criado com foco em uma experiência rápida, organizada, personali
 
 ---
 
+## Documentação
+
+- [Arquitetura](docs/ARCHITECTURE.md)
+- [Funcionalidades](docs/FEATURES.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Registros de desenvolvimento](docs/development/README.md)
+
+---
+
 ## Sobre o projeto
 
 O Quadra é desenvolvido inicialmente para Android e tem como prioridade o funcionamento local e offline.
