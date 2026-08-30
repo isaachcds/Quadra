@@ -1,411 +1,392 @@
 # Quadra
 
-Quadra é um aplicativo de leitura e organização de quadrinhos, livros e documentos desenvolvido com **.NET MAUI**.
+Quadra é um aplicativo Android de leitura e organização de quadrinhos, livros e documentos desenvolvido com **.NET MAUI**.
 
-O projeto nasceu com o objetivo de oferecer uma experiência rápida, organizada, personalizável e totalmente local para importar, gerenciar e ler arquivos **CBR, CBZ, PDF e EPUB** diretamente no celular.
+O projeto foi criado com foco em uma experiência rápida, organizada, personalizável e offline para importar, organizar e ler arquivos **CBR, CBZ, PDF e EPUB** diretamente no celular.
 
-> **Status atual:** Fase 2 em desenvolvimento — `v0.1.0-alpha`
+> **Status atual:** Fase 2 concluída — `v0.2.0-alpha`
 
 ---
 
 ## Sobre o projeto
 
-O Quadra está sendo desenvolvido inicialmente para **Android**, com foco em uma biblioteca local e funcionamento offline.
+O Quadra é desenvolvido inicialmente para Android e tem como prioridade o funcionamento local e offline.
 
-A proposta é permitir que o usuário:
+O aplicativo permite:
 
-* importe arquivos CBR, CBZ, PDF e EPUB;
-* organize suas obras em uma biblioteca local;
-* visualize capas geradas automaticamente;
-* pesquise, filtre e ordene sua biblioteca;
-* organize obras em coleções personalizadas;
-* leia diretamente dentro do aplicativo;
-* personalize a experiência de leitura;
-* acompanhe o progresso;
-* continue exatamente de onde parou;
-* conclua uma obra e possa iniciar a leitura novamente;
-* escolha diferentes formas de navegação;
-* mantenha seus arquivos e dados localmente.
+- importar arquivos CBR, CBZ, PDF e EPUB;
+- organizar obras em uma biblioteca local;
+- gerar capas automaticamente;
+- pesquisar, filtrar e ordenar a biblioteca;
+- organizar obras em coleções;
+- acompanhar o progresso de leitura;
+- continuar exatamente de onde parou;
+- consultar o histórico recente;
+- personalizar a experiência de leitura;
+- abrir arquivos diretamente pelo Android usando **Abrir com Quadra**;
+- manter os dados e arquivos processados localmente.
 
-A interface segue a identidade visual **Digital Codex**, criada para combinar organização editorial, foco no conteúdo e uma experiência moderna de leitura.
-
-Futuramente, o projeto poderá receber sincronização opcional com um servidor privado, mantendo a leitura local como núcleo da experiência.
+A interface utiliza uma identidade visual própria, com foco em leitura, organização e destaque para as capas das obras.
 
 ---
 
-# Funcionalidades atuais
+# Funcionalidades
 
 ## Biblioteca
 
-* Importação de arquivos CBR, CBZ, PDF e EPUB
-* Cópia segura para o armazenamento interno do aplicativo
-* Biblioteca persistente com SQLite
-* Interface baseada no design system Digital Codex
-* Grade de capas
-* Estado vazio dedicado
-* Seção **Continuar lendo**
-* Identificação visual do formato
-* Progresso individual por obra
-* Tela de detalhes
-* Exclusão sem apagar o arquivo original do usuário
-* Estados de carregamento, erro, importação e filtro vazio
-* Navegação principal por barra inferior
+- Importação de CBR, CBZ, PDF e EPUB
+- Biblioteca persistente com SQLite
+- Grade responsiva de obras
+- Capas geradas automaticamente
+- Seção **Continuar lendo**
+- Busca local
+- Filtros por formato
+- Filtros por status de leitura
+- Ordenação
+- Progresso visual
+- Estados de carregamento, erro e biblioteca vazia
+- Navegação inferior entre as principais áreas
 
 ### Busca
 
-Busca local por:
+A busca considera:
 
-* título;
-* nome original do arquivo;
-* formato.
+- título;
+- nome original do arquivo;
+- formato.
 
-A busca suporta:
+Possui:
 
-* correspondência parcial;
-* diferença entre maiúsculas e minúsculas ignorada;
-* normalização de acentos;
-* debounce para evitar processamento excessivo durante digitação.
+- correspondência parcial;
+- busca case-insensitive;
+- normalização de acentos;
+- debounce durante digitação.
 
 ### Filtros
 
-Filtros por formato:
+Por formato:
 
-* Todos
-* EPUB
-* PDF
-* CBR/CBZ
+- Todos
+- EPUB
+- PDF
+- CBR/CBZ
 
-Filtros por estado:
+Por estado:
 
-* Não iniciado
-* Em andamento
-* Concluído
+- Não iniciado
+- Em andamento
+- Concluído
 
 ### Ordenação
 
-* Importados recentemente
-* Última leitura
-* Título A–Z
-* Título Z–A
-* Menor progresso
-* Maior progresso
+- Importados recentemente
+- Última leitura
+- Título A–Z
+- Título Z–A
+- Menor progresso
+- Maior progresso
 
-A preferência de ordenação é persistida localmente.
-
----
-
-## Capas
-
-* Geração automática para CBR
-* Geração automática para CBZ
-* Renderização da primeira página de PDFs
-* Extração da capa embutida de EPUB
-* Suporte a EPUB 2 e EPUB 3
-* Fallback para EPUBs sem metadados de capa corretamente definidos
-* Placeholder local quando não há capa disponível
+A ordenação selecionada é persistida localmente.
 
 ---
 
 # Detalhes da obra
 
-A tela de detalhes exibe somente informações reais disponíveis no arquivo ou na biblioteca:
+Cada obra possui uma tela de detalhes com dados reais da biblioteca.
 
-* capa;
-* título;
-* nome original;
-* formato;
-* data de importação;
-* número de páginas ou capítulos;
-* progresso;
-* última leitura;
-* tamanho da cópia interna.
+São exibidos:
 
-Estados de leitura:
+- capa;
+- título;
+- nome original;
+- formato;
+- progresso;
+- página ou capítulo atual;
+- última leitura;
+- informações do arquivo.
 
-* Não iniciado
-* Em andamento
-* Concluído
+A ação principal muda de acordo com o estado:
 
-A ação principal muda automaticamente entre:
+- **Começar leitura**
+- **Continuar leitura**
+- **Ler novamente**
 
-* **Começar leitura**
-* **Continuar leitura**
-* **Ler novamente**
+A tela também permite:
 
-A tela também permite gerenciar as coleções às quais a obra pertence.
+- adicionar ou remover a obra de coleções;
+- criar novas coleções;
+- excluir a obra da biblioteca.
 
 ---
 
 # Coleções
 
-O Quadra permite organizar a biblioteca em coleções personalizadas.
+O Quadra permite organizar as obras em coleções personalizadas.
 
-Funcionalidades atuais:
+Funcionalidades:
 
-* criação de coleções;
-* nome e descrição;
-* edição;
-* exclusão;
-* mosaico de capas reais;
-* quantidade de obras;
-* progresso geral;
-* adicionar obras existentes;
-* remover obras;
-* abrir detalhes de uma obra;
-* uma obra pode pertencer a várias coleções.
+- criar coleção;
+- editar nome e descrição;
+- excluir coleção;
+- adicionar obras existentes;
+- remover obras sem excluir os arquivos;
+- permitir que uma obra pertença a várias coleções;
+- exibir mosaico de capas;
+- quantidade de obras;
+- progresso geral da coleção;
+- abrir detalhes de cada obra.
 
-A estrutura utiliza uma relação **N:N** no SQLite.
+A persistência utiliza uma relação **N:N** no SQLite.
 
-Excluir uma coleção não exclui as obras e não remove seus arquivos.
-
-Recursos planejados para versões futuras:
-
-* subcoleções;
-* séries;
-* sagas;
-* universos;
-* hierarquias entre coleções.
+Excluir uma coleção não exclui as obras associadas.
 
 ---
 
-# Leitura de CBR e CBZ
+# Histórico
 
-* Leitor nativo baseado em páginas
-* Extração das imagens para cache local
-* Ordenação natural das páginas
-* Navegação horizontal por swipe
-* Navegação opcional por toque nas laterais
-* Controles em overlay
-* Modo foco
-* Auto-hide da interface
-* Navegação anterior/próxima
-* Slider de progresso
-* Contador de páginas
-* Salvamento automático
-* Retomada da leitura
-* Detecção de conclusão
-* Opção **Ler novamente**
+O histórico utiliza os dados reais de última leitura das obras.
+
+Exibe:
+
+- capa;
+- título;
+- formato;
+- data e hora da última leitura;
+- progresso;
+- posição atual;
+- ação para continuar ou reiniciar a leitura.
+
+As obras são ordenadas da leitura mais recente para a mais antiga.
 
 ---
 
-# Leitura de PDF
+# Leitor CBR e CBZ
 
-* Leitura totalmente offline
-* Renderização local pelo Android `PdfRenderer`
-* Cache das páginas renderizadas
-* Mesmo leitor utilizado por CBR e CBZ
-* Navegação por swipe
-* Navegação opcional pelas bordas
-* Controles em overlay
-* Progresso e retomada
-* Detecção de conclusão
-* Opção **Ler novamente**
+- Leitor nativo por páginas
+- Extração local para cache
+- Ordenação natural das imagens
+- Navegação horizontal por swipe
+- Navegação opcional pelas laterais
+- Toque central para mostrar ou ocultar controles
+- Controles com auto-hide
+- Modo foco
+- Contador de páginas
+- Slider de progresso
+- Salvamento automático
+- Retomada da leitura
+- Detecção de conclusão
+- Opção de ler novamente
 
-O processamento inclui limites de segurança para páginas, dimensões e armazenamento.
+---
+
+# Leitor PDF
+
+- Leitura totalmente offline
+- Renderização local usando Android `PdfRenderer`
+- Cache das páginas renderizadas
+- Mesmo leitor utilizado por CBR e CBZ
+- Swipe
+- Navegação lateral opcional
+- Progresso e retomada
+- Auto-hide dos controles
+- Detecção de conclusão
+- Opção de ler novamente
 
 ---
 
 # Zoom e gestos
 
-Para CBR, CBZ e PDF:
+Em CBR, CBZ e PDF:
 
-* zoom por toque duplo;
-* movimentação da imagem ampliada;
-* bloqueio da troca de página enquanto ampliado;
-* bloqueio da navegação pelas bordas durante zoom;
-* restauração da escala com novo toque duplo;
-* liberação automática do swipe ao retornar à escala normal.
+- zoom por toque duplo;
+- movimentação da imagem ampliada;
+- bloqueio da mudança de página enquanto ampliado;
+- retorno à escala normal com novo toque duplo;
+- swipe liberado automaticamente ao voltar para escala normal.
 
-O pinch-to-zoom não é utilizado atualmente para priorizar estabilidade.
+O pinch-to-zoom ainda não faz parte da versão atual e está planejado como melhoria futura.
 
 ---
 
-# Leitura de EPUB
+# Leitor EPUB
 
-* Extração local
-* Leitura offline
-* Navegação por capítulos
-* WebView protegido
-* HTML, CSS e imagens internas
-* Scroll vertical dentro dos capítulos
-* Navegação entre capítulos
-* Progresso e retomada
-* Detecção de conclusão
-* Controles em overlay
-* Modo foco
-* Personalização visual
+- Extração local
+- Leitura offline
+- Navegação por capítulos
+- Scroll vertical
+- WebView protegido
+- HTML, CSS e imagens internas
+- Progresso e retomada
+- Controles em overlay
+- Auto-hide
+- Modo foco
+- Navegação entre capítulos
+- Personalização da aparência
 
 ## Aparência EPUB
 
 Preferências disponíveis:
 
-* Tema Claro
-* Tema Escuro
-* Tema Sépia
-* Fonte do sistema
-* Sans Serif
-* Serif
-* Tamanho do texto
-* Espaçamento entre linhas
-* Margens
-* Alinhamento à esquerda
-* Texto justificado
+- Tema Claro
+- Tema Escuro
+- Tema Sépia
+- Fonte do sistema
+- Sans Serif
+- Serif
+- Tamanho do texto
+- Espaçamento entre linhas
+- Margens
+- Alinhamento à esquerda
+- Texto justificado
 
 As preferências são persistidas localmente.
-
-O CSS de leitura também adapta:
-
-* imagens;
-* tabelas;
-* blocos de código;
-* largura do conteúdo;
-* margens;
-* tipografia.
-
-> A experiência de interação dos controles do leitor EPUB ainda está em refinamento durante a Fase 2.
 
 ---
 
 # Configurações
 
-A tela de Configurações utiliza apenas opções e informações reais do aplicativo.
-
 ## Aparência
 
-* Tema do sistema
-* Tema claro
-* Tema escuro
+- Tema do sistema
+- Tema claro
+- Tema escuro
 
 ## Biblioteca
 
-* Preferência de ordenação
+- Preferência de ordenação
 
 ## Leitura
 
-* Apenas deslizar
-* Deslizar e tocar nas laterais
-* Resumo das preferências EPUB
+- Apenas deslizar
+- Deslizar e tocar nas laterais
+- Resumo das preferências EPUB
 
 ## Armazenamento
 
-Informações reais sobre:
+Exibe dados reais sobre:
 
-* biblioteca;
-* capas;
-* cache de quadrinhos;
-* cache de EPUB;
-* cache de PDF;
-* espaço disponível.
+- biblioteca;
+- capas;
+- cache CBR/CBZ;
+- cache PDF;
+- cache EPUB;
+- espaço disponível.
 
 Também é possível limpar caches regeneráveis sem apagar:
 
-* obras;
-* capas necessárias;
-* banco;
-* progresso.
+- biblioteca;
+- arquivos das obras;
+- banco;
+- progresso.
 
-## Privacidade
+---
 
-O Quadra atualmente:
+# Abrir com Quadra
 
-* processa os arquivos localmente;
-* mantém a biblioteca no dispositivo;
-* não exige conta;
-* não utiliza servidor para a leitura.
+No Android, arquivos compatíveis podem ser enviados diretamente para o Quadra através da ação **Abrir com**.
+
+Formatos suportados:
+
+- CBR
+- CBZ
+- PDF
+- EPUB
+
+O aplicativo:
+
+1. recebe a URI fornecida pelo Android;
+2. abre o conteúdo através do `ContentResolver`;
+3. valida o arquivo;
+4. reutiliza o mesmo pipeline de importação da Biblioteca;
+5. copia o arquivo para o armazenamento interno;
+6. adiciona a obra à biblioteca;
+7. abre a tela de detalhes.
+
+O arquivo original externo não é alterado.
+
+---
+
+# Capas
+
+- CBR
+- CBZ
+- PDF
+- EPUB 2
+- EPUB 3
+- Fallback para EPUB sem capa corretamente definida
+
+Para PDF, a primeira página é renderizada localmente.
 
 ---
 
 # Segurança e integridade
 
-A Fase 2 adicionou diversas proteções ao processamento de arquivos.
+O Quadra possui proteções para processamento de arquivos locais.
 
-## Importação atômica
+Entre elas:
 
-Arquivos temporários utilizam `.partial` e somente são promovidos ao destino final após gravação válida.
-
-Isso reduz o risco de arquivos incompletos serem considerados válidos.
-
-## Espaço disponível
-
-No Android, o espaço real do volume é consultado utilizando `StatFs`.
-
-O aplicativo diferencia:
-
-* espaço suficiente;
-* espaço insuficiente;
-* espaço desconhecido;
-* limite de processamento excedido.
-
-## Arquivos compactados
-
-Existem limites para:
-
-* quantidade de entradas;
-* tamanho expandido;
-* tamanho de caminhos;
-* páginas;
-* bitmaps PDF.
-
-## EPUB
-
-Proteções incluem:
-
-* prevenção de path traversal;
-* resolução segura de recursos;
-* bloqueio de scripts provenientes do EPUB;
-* bloqueio de navegação externa automática;
-* confirmação antes de abrir links HTTP/HTTPS;
-* sanitização de referências HTML/CSS.
+- escrita atômica com arquivos `.partial`;
+- verificação de espaço disponível;
+- limites para arquivos e conteúdo extraído;
+- limites de páginas e bitmaps;
+- validação estrutural dos formatos;
+- prevenção de path traversal em EPUB;
+- sanitização de referências HTML/CSS;
+- bloqueio de scripts externos;
+- tratamento seguro de `content://`;
+- regeneração de caches incompletos.
 
 ---
 
-# Armazenamento e limpeza
+# Armazenamento
 
-* SQLite para persistência da biblioteca
-* Armazenamento interno dos arquivos importados
-* Cache separado para quadrinhos, PDFs e EPUBs
-* Escritas atômicas
-* Limpeza de páginas extraídas de CBR/CBZ
-* Limpeza de páginas renderizadas de PDF
-* Limpeza do conteúdo extraído de EPUB
-* Remoção das relações de coleção ao excluir uma obra
-* Preservação do arquivo original externo
+O aplicativo utiliza armazenamento interno para:
+
+- obras importadas;
+- capas;
+- cache de quadrinhos;
+- cache de PDFs;
+- conteúdo extraído de EPUB;
+- banco SQLite.
+
+O arquivo original selecionado pelo usuário é preservado.
 
 ---
 
 # Formatos suportados
 
 | Formato | Importação | Capa | Leitura | Progresso | Offline |
-| ------- | ---------: | ---: | ------: | --------: | ------: |
-| CBR     |          ✅ |    ✅ |       ✅ |         ✅ |       ✅ |
-| CBZ     |          ✅ |    ✅ |       ✅ |         ✅ |       ✅ |
-| PDF     |          ✅ |    ✅ |       ✅ |         ✅ |       ✅ |
-| EPUB    |          ✅ |    ✅ |       ✅ |         ✅ |       ✅ |
+|---|---:|---:|---:|---:|---:|
+| CBR | ✅ | ✅ | ✅ | ✅ | ✅ |
+| CBZ | ✅ | ✅ | ✅ | ✅ | ✅ |
+| PDF | ✅ | ✅ | ✅ | ✅ | ✅ |
+| EPUB | ✅ | ✅ | ✅ | ✅ | ✅ |
 
 ---
 
 # Tecnologias utilizadas
 
-* .NET 10
-* .NET MAUI
-* C#
-* XAML
-* CommunityToolkit.Mvvm
-* SQLite
-* sqlite-net-pcl
-* SourceGear.sqlite3
-* SharpCompress
-* VersOne.Epub
-* Android PdfRenderer
-* WebView
-* Shell Navigation
-* Dependency Injection
+- .NET 10
+- .NET MAUI
+- C#
+- XAML
+- CommunityToolkit.Mvvm
+- SQLite
+- sqlite-net-pcl
+- SourceGear.sqlite3
+- SharpCompress
+- VersOne.Epub
+- Android PdfRenderer
+- Android ContentResolver
+- WebView
+- Shell Navigation
+- Dependency Injection
 
 ---
 
 # Arquitetura
 
-O Quadra utiliza **MVVM** e separa as responsabilidades do aplicativo em áreas específicas.
+O Quadra utiliza o padrão **MVVM**, separando interface, apresentação, serviços, infraestrutura e persistência.
 
 Estrutura principal:
 
@@ -426,207 +407,3 @@ Quadra.App/
 │   ├── Readers/
 │   └── Storage/
 └── ViewModels/
-```
-
-A organização evita concentrar apresentação, políticas e infraestrutura dentro de uma única pasta de serviços.
-
-Os conceitos próprios do domínio utilizam progressivamente nomenclatura em português, enquanto convenções técnicas do .NET permanecem em inglês.
-
-Exemplos:
-
-```text
-BibliotecaPage
-BibliotecaViewModel
-
-DetalhesObraPage
-DetalhesObraViewModel
-
-LeitorPage
-LeitorViewModel
-
-LeitorEpubPage
-LeitorEpubViewModel
-
-ColecoesPage
-DetalhesColecaoPage
-```
-
----
-
-# Processamento dos formatos
-
-## CBR
-
-```text
-CBR
-└── SharpCompress
-    └── extração segura
-        └── cache local
-            └── LeitorPage
-```
-
-## CBZ
-
-```text
-CBZ
-└── System.IO.Compression
-    └── extração segura
-        └── cache local
-            └── LeitorPage
-```
-
-## PDF
-
-```text
-PDF
-└── ILeitorPdfService
-    └── Android PdfRenderer
-        └── cache local
-            └── LeitorPage
-```
-
-## EPUB
-
-```text
-EPUB
-└── ILeitorEpubService
-    └── extração e sanitização
-        └── capítulos locais
-            └── WebView
-                └── LeitorEpubPage
-```
-
----
-
-# Testes
-
-O projeto possui um projeto separado de testes automatizados:
-
-```text
-Quadra.App.Tests
-```
-
-Atualmente:
-
-> **133 testes automatizados aprovados**
-
-A suíte cobre áreas como:
-
-* ordenação natural;
-* progresso;
-* estados de leitura;
-* filtros;
-* busca;
-* ordenação da biblioteca;
-* caminhos EPUB;
-* formatos suportados;
-* inicialização concorrente do SQLite;
-* armazenamento;
-* escrita atômica;
-* apresentação dos detalhes;
-* comportamento dos leitores;
-* XAML crítico.
-
-Os builds Android Debug e Release são utilizados como validação obrigatória nas etapas principais.
-
----
-
-# Design System
-
-A Fase 2 introduziu a identidade **Digital Codex**.
-
-Princípios:
-
-* visual moderno e editorial;
-* grade modular;
-* capas como elemento principal;
-* superfícies em camadas;
-* fundo grafite;
-* destaque turquesa;
-* bordas discretas;
-* poucos efeitos decorativos;
-* foco na leitura;
-* suporte a tema claro e escuro.
-
-Os recursos visuais são centralizados em:
-
-```text
-Resources/
-└── Styles/
-    ├── Colors.xaml
-    ├── Typography.xaml
-    ├── Spacing.xaml
-    ├── Controls.xaml
-    └── Reader.xaml
-```
-
----
-
-# Estado do desenvolvimento
-
-## Fase 1 — Concluída ✅
-
-Base funcional:
-
-* importação;
-* biblioteca;
-* capas;
-* leitura;
-* progresso;
-* retomada;
-* zoom;
-* armazenamento local.
-
-## Fase 2 — Em desenvolvimento 🚧
-
-Concluído:
-
-* fundação técnica;
-* design system;
-* Biblioteca redesenhada;
-* navegação principal;
-* busca;
-* filtros;
-* ordenação;
-* detalhes da obra;
-* leitor CBR/CBZ/PDF redesenhado;
-* leitor EPUB redesenhado;
-* personalização EPUB;
-* Configurações;
-* Coleções;
-* reforço de segurança;
-* reorganização estrutural;
-* ampliação dos testes.
-
-Ainda planejado para o fechamento da Fase 2:
-
-* Histórico;
-* “Abrir com Quadra” no Android;
-* refinamento do UX do EPUB;
-* polimento visual;
-* logo/ícone definitivo;
-* integração da fonte Inter;
-* melhorias na responsividade da grade;
-* rodada final de testes e smoke tests Android.
-
----
-
-# Roadmap futuro
-
-Após a Fase 2, algumas possibilidades são:
-
-* subcoleções;
-* organização por séries e universos;
-* histórico detalhado por sessões;
-* estatísticas de leitura;
-* leitura vertical/webtoon;
-* direção de leitura RTL;
-* renderização progressiva de PDF;
-* metadados automáticos;
-* sincronização opcional;
-* servidor privado;
-* backup;
-* sincronização entre dispositivos;
-* recursos avançados de personalização.
-
-A leitura offline e o controle local dos arquivos continuarão sendo o núcleo do Quadra.
