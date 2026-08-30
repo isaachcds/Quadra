@@ -39,6 +39,25 @@ A interface utiliza uma identidade visual própria, com foco em leitura, organiz
 
 ---
 
+## Como executar
+
+Pré-requisitos: .NET 10 SDK, workload .NET MAUI, Android SDK configurado e Visual Studio 2022 compatível ou a CLI do .NET.
+
+Caso o workload MAUI ainda não esteja instalado:
+
+```bash
+dotnet workload install maui
+```
+
+Para restaurar e compilar o target Android:
+
+```bash
+dotnet restore
+dotnet build .\Quadra.App\Quadra.App.csproj -f net10.0-android
+```
+
+---
+
 # Funcionalidades
 
 ## Biblioteca

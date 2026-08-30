@@ -361,3 +361,13 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Local secrets and mobile artifacts
+.env
+.env.*
+*.jks
+*.keystore
+*.apk
+*.aab
+*.db3
+*.sqlite
